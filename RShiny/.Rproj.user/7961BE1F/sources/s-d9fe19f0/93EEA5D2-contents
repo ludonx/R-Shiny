@@ -1,0 +1,64 @@
+
+#print_dataFrame(globalInformation$user$listSaveDataFrame$def_genes_cat_hs9.9_v1)
+#mydataGeneBiotin <- globalInformation$Ma_console$dataFrame
+#mydataGeneBiotin<-globalInformation$user$listSaveDataFrame$def_genes_cat_hs9.9_v1
+
+#mydatasample <- findAll('iogold_microbaria','obs_samplemetadata_v1_Microbaria')
+
+#mydataGeneAbundance <- 
+#findQuery('iogold_microbaria',
+#'obs_genes_cat_hs9.9_v1_Microbaria',
+#myQueryUniqueIN("_row", mydataGeneBiotin$GeneName) )
+
+#dir()
+#print_text(mydataGeneAbundance)
+#print_dataFrame(mydataGeneAbundance)
+
+#printy(obj = "bonjour", stdout='log')
+#printy(obj = c("test","tust"), stdout='log')
+#df = globalInformation$var$dataFrame
+#save(df, file='df.rda')
+#printy(getwd())
+
+#printy(paste0("/home/ltekam/GIT_LAB_test/iogoldg/RShiny","/user_data"))
+#printy(paste0(getwd(),"/user_data"))
+
+#printy(app$config, stdout="mc")
+#printy(setwd("/"))
+#app$users[[globalInformation$user$email]] <- globalInformation$user
+
+file_globalInformation<-paste(globalInformation$user$path,"globalInformation.rds",sep="/")
+#app$users[["root@g.c"]]<-readRDS(file_globalInformation)
+#app$users[[globalInformation$user$email]]<-globalInformation$user
+#printy(names(app$users[[globalInformation$user$email]]$listSaveDataFrame))
+#globalInformation$user<-app$users[[globalInformation$user$email]]
+#printy(globalInformation$modules$Catalogue$listSaveDataFrame,stdout="mc")
+#printy(class(globalInformation$modules$Catalogue$listSaveDataFrame$))
+#printy(paste0(names(globalInformation$user)),stdout="mc")
+#printy(paste0("length = ",names(app$users)), stdout="mc")
+#globalInformation$modules$Ma_console$text <-paste0("length = ",names(app$users))
+
+#printy(paste0(names(globalInformation$user)))
+
+#globalInformation$Console<-12
+newRequete<-data.frame()
+    newRequete[1,"collection"]<-"obs_genes_cat_hs9.9_v1_Microbaria"
+    newRequete[1,"requete"]<-'{}'
+    newRequete[1,"nbrElemRequete"]<--1
+    newRequete[1,"database"]<-"iogold_microbaria"
+    
+df<-
+#executerQueriesDataFrameProjet(
+#globalDatabase="iogold",
+#jointuresCollections="jointures",
+#dataFrameInit=globalInformation$modules$Catalogue$listSaveDataFrame$QuickSave,
+#collectiondataFrameInit="def_genes_cat_hs9.9_v1",
+#dataFrameRequete=newRequete,
+#nameSaveDataFrame="test")
+
+#printy(names(df))
+#printy(names(df$listSaveDataFrame))
+#printy(df$listSaveDataFrame$test, stdout="mc")
+
+
+

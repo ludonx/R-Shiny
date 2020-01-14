@@ -1,0 +1,51 @@
+
+#########################################################################################
+## server.R ## # server frontend
+#########################################################################################
+server <- function(input, output, session) {
+  
+  ################################################
+  # cette structure de données contiendra les informations
+  # essentielles au fonctionement générale de l'appication
+  ################################################
+  source(
+    file.path(
+      "./server",
+      "serverLesVariables.R"),
+    local = TRUE)$value
+  
+  
+  source(
+    file.path(
+      "./server",
+      "serverLesFonctions.R"),
+    local = TRUE)$value
+  
+  
+  ############################################################
+  ####### pour éxécuter du code R ############################
+  runcodeServer()
+  
+  #############################################################
+  # source(
+  #   file.path(
+  #     "./server",
+  #     "serverLesServers.R"),
+  #   local = TRUE)$value
+  
+  lapply(app$modules$server, function(x){eval(parse(text = x))})
+  
+  #############################################################
+  session$allowReconnect(TRUE)
+  # options(shiny.launch.browser=TRUE)
+  
+  ################## CHARGEMENT DES FeedBack #######################
+  source(
+    file.path(
+      "./server",
+      "serverUpdate_feedback.R"),
+    local = TRUE)$value
+  
+ 
+  
+}

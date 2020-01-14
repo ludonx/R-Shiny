@@ -1,0 +1,9 @@
+
+################### variable du module Ma_console
+globalInformation$Ma_console<-reactiveValues(
+  variables=list(),
+  time=Sys.time(),
+  text="",
+  dataFrame=data.frame(),
+  plot=""
+)

@@ -1,0 +1,256 @@
+library(shiny)
+library(mongolite)
+library(jsonlite)
+library(DT)
+library(shinyjs)
+library(ggplot2)
+library(bcrypt)
+
+library(shinyWidgets)
+
+#library("htmltools")
+#library("bsplus")
+#library(shinyhelper)
+
+library(reshape)
+library(gridExtra)
+
+library(shinycssloaders)
+library(shinydashboard)
+
+
+library(pheatmap)
+library(plotly)
+
+# on commence par récupérer les données du le fichier JSON qui contient les informations nécessaires au démarrage de l'application
+globalInformationJson<-read_json(path='./globalInformation.json',simplifyVector = TRUE)
+id_globalInformationJson<-1
+
+listUsers<-list("b")
+
+
+source("./PackageForMongoDB/mongoDbSimpleQuery.R")
+source("./PackageForMongoDB/mesFonctionsNoSQL.R")
+
+source("./PackageForGgplot2/mesFonctionsGgplot2.R")
+
+source('./mainDashboardPage/mainDashboardHeader.R')
+source('./mainDashboardPage/mainDashboardSidebar.R')
+
+
+
+# avant d'appeler le mainDashboardBody.R il faut d'abord appeler
+# les sous dossiers qu'il contient
+
+# Accueil
+source('./mainDashboardPage/mainDashboardBody/Connexion/uiConnexion.R')
+source('./mainDashboardPage/mainDashboardBody/Connexion/serverConnexion.R')
+
+
+# Accueil
+source('./mainDashboardPage/mainDashboardBody/Accueil/uiAccueil.R')
+source('./mainDashboardPage/mainDashboardBody/Accueil/serverAccueil.R')
+##############################################################################################################
+
+##################### Gestion_des_utilisateurs
+################### Les_utilisateurs
+source('./mainDashboardPage/mainDashboardBody/Gestion_des_utilisateurs/serverLes_utilisateurs.R')
+################### Affection_de_projets
+source('./mainDashboardPage/mainDashboardBody/Gestion_des_utilisateurs/serverAffection_de_projets.R')
+################### Ajouter_un_utilisateur
+source('./mainDashboardPage/mainDashboardBody/Gestion_des_utilisateurs/serverAjouter_un_utilisateur.R')
+
+source('./mainDashboardPage/mainDashboardBody/Gestion_des_utilisateurs/uiGestion_des_utilisateurs.R')
+source('./mainDashboardPage/mainDashboardBody/Gestion_des_utilisateurs/serverGestion_des_utilisateurs.R')
+
+
+##############################################################################################################
+
+#####################  Gestion_des_projets
+##############################################################################################################
+
+#####################  Requete_et_visualisation
+#################################  Donnees_des_projets
+##################### ################ Selectionner_des_projets
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_des_projets/Selection_de_projets/uiSelection_de_projets.R')
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_des_projets/Selection_de_projets/serverSelection_de_projets.R')
+##############################################################################################################
+##################### ################ Faire_des_requetes
+##################### ####################### Les_MGS_projets
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_MGS_projets/uiLes_MGS_projets.R')
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_MGS_projets/serverLes_MGS_projets.R')
+
+##################### ####################### Les_Genes_projets
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_Genes_projets/uiLes_Genes_projets.R')
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_Genes_projets/serverLes_Genes_projets.R')
+
+
+
+
+#################################  Donnees_Metagenomique
+##################### ################ Selection_un_catalogue
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_Metagenomique/Selection_un_catalogue/uiSelection_un_catalogue.R')
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_Metagenomique/Selection_un_catalogue/serverSelection_un_catalogue.R')
+##############################################################################################################
+##################### ################ Faire_des_requetes
+##################### ####################### Les_Genes
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_Metagenomique/Faire_des_requetes/Les_Genes/uiLes_Genes.R')
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/Donnees_Metagenomique/Faire_des_requetes/Les_Genes/serverLes_Genes.R')
+
+
+
+
+##############################################################################################################
+
+#####################  FAM
+############################# Couverture_des_modules
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/FAM/Couverture_des_modules/uiCouverture_des_modules.R')
+source('./mainDashboardPage/mainDashboardBody/Requetes_et_visualisation/FAM/Couverture_des_modules/serverCouverture_des_modules.R')
+##############################################################################################################
+
+
+
+##############################################################################################################
+
+#####################  Architecture_de_mongo_DB
+source('./mainDashboardPage/mainDashboardBody/Architecture_de_mongoDB/Visualisation_des_collections/uiVisualisation_des_collections.R')
+source('./mainDashboardPage/mainDashboardBody/Architecture_de_mongoDB/Visualisation_des_collections/serverVisualisation_des_collections.R')
+##############################################################################################################
+
+#####################  Reglage
+##############################################################################################################
+
+# 
+source('./mainDashboardPage/mainDashboardBody.R')
+
+
+
+
+
+## ui.R ##
+
+
+# Put them together into a dashboardPage
+ui<-
+  function(req){
+    
+    # Put them together into a dashboardPage
+    # permet de modifier la langue de datatable
+    # French.json = en français
+    # Chinise.json = en chinois
+    options(
+      DT.options =
+        list(
+          pageLength = 5,
+          language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/French.json')
+        )
+    )
+    useShinyjs()
+    
+    # structure de notre application
+    # ici on utilise une structure type shinydashboard
+    # les variables mainDashboardHeader,mainDashboardSidebar et mainDashboardHeader
+    # sont definie chacun dans un dossier
+    dashboardPage(
+      skin = "black",
+      mainDashboardHeader,
+      mainDashboardSidebar,
+      mainDashboardBody
+    )
+  }
+
+#######################################################################################
+#######################################################################################
+server <- function(input, output, session) {
+  
+  ################################################
+  # cette structure de données contiendra les informations
+  # essentielles au fonctionement générale de l'appication
+  ################################################
+  
+  globalInformation<-reactiveValues(
+    
+    # nom de la base de données principales
+    # cette base de données contient notamment les different catalogues
+    # et les collections liées à la gestion de l'application
+    globalDatabase=globalInformationJson$globalDatabase[id_globalInformationJson],
+    
+    # collection des utilisateurs
+    usersCollections=globalInformationJson$usersCollection[id_globalInformationJson],
+    
+    # collection des projets
+    projectsCollections=globalInformationJson$projectsCollections[id_globalInformationJson],
+    
+    # collection des catalogues
+    catalogCollections=globalInformationJson$catalogCollections[id_globalInformationJson],
+    
+    # cette varaible contiendra le nom de la collection qui 
+    # regroupe les informations relatives à chaque collection 
+    # potentielement utiliser dans l'application
+    collections=globalInformationJson$mainCollections[id_globalInformationJson],
+    
+    # collection qui contient les different lien entre les collections des catalogues
+    jointuresCollections=globalInformationJson$jointuresCollections[id_globalInformationJson],
+    
+    
+    # collection qui contient les couverture des differents modules
+    moduleCoverageCollections=globalInformationJson$moduleCoverageCollections[id_globalInformationJson],
+    
+    
+    # cette variable est une structure qui sera utiliser 
+    # pour stocker les informations sur un utilisateur connecté
+    user=""
+    
+  )
+  
+  # structure des utilisateurs
+  # cette structure permet de caractériser un utilisateur
+  globalInformation$user<-reactiveValues(
+    id="",
+    nom="-----",
+    prenom="-----",
+    email="",#"root@g.c",#"b@g.c",
+    profil="",
+    admin="",
+    connected=F,
+    projectSelected=list(),
+    catalogSelected="",
+    myQueryGene="",
+    myQueryGeneTraduction="",
+    myResultGene=-1,
+    projectSelectedData=list() #@ludo à supprimer
+  )
+  
+  
+  
+  serverConnexion(input, output, session,globalInformation)
+  #############################################################
+  
+  serverAccueil(input, output, session,globalInformation)
+  #############################################################
+  
+  serverGestion_des_utilisateurs(input, output, session,globalInformation)
+  #############################################################
+  
+  serverVisualisation_des_collections(input, output, session,globalInformation)
+  #############################################################
+  
+  serverSelection_de_projets(input, output, session,globalInformation)
+  serverLes_MGS_projets(input, output, session,globalInformation)
+  serverLes_Genes_projets(input, output, session,globalInformation)
+  #############################################################
+  
+  serverSelection_un_catalogue(input, output, session,globalInformation)
+  serverLes_Genes(input, output, session,globalInformation)
+  #############################################################
+  
+  serverCouverture_des_modules(input, output, session,globalInformation)
+  #############################################################
+  
+  
+  # session$allowReconnect(F)
+  # options(shiny.launch.browser=TRUE)
+  
+}
+
+shinyApp(ui, server)

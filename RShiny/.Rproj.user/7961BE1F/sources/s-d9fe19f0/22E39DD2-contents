@@ -1,0 +1,11 @@
+[
+  {
+    "folderName":"Genes_Abundance",
+    "ui":"tabItem_Genes_Abundance",
+    "server":"serverGenes_Abundance(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Genes Abundance',tabName = 'Genes_Abundance',icon = icon('user-md'))",
+    "fileToSource":["serverGenes_Abundance.R","uiGenes_Abundance.R"],
+    "priority":0,
+    "linkModule":null
+  }
+]

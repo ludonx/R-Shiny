@@ -1,0 +1,9 @@
+[
+  {
+    "name":"Mes_requetes",
+    "ui":"tabItem_Mes_requetes",
+    "server":"serverMes_requetes(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Mes requêtes',tabName = 'Mes_requetes',icon = icon('user-cog'))",
+    "fileToSource":["serverMes_requetes.R","uiMes_requetes.R"]
+  }
+]

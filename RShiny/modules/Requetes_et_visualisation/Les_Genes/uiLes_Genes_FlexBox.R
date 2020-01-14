@@ -1,0 +1,42 @@
+fluidRow(
+  ##################### CONSOLE ############################
+  ####################################################### 
+  fixedPanel(
+    #draggable=T,
+    bottom  = 5, right = 5, width = "88%",
+    box(title = span( icon("file-code"),paste0(" Retour d'information (Feedback)")),
+        background = "navy",#status = "primary",#background = "aqua",#status = "success",
+        solidHeader = T,collapsible = T,collapsed = T,
+        width = 12,
+        #box(collapsible = T,status = "success", width = 12,uiOutput("uiMessage_ResultatConsoleR_Les_Genes")),
+        
+        textAreaInput("Console_Les_Genes",
+                      NULL,
+                      height = '300px')#"Résultat des requêtes et opérations"
+        
+    )#end Box
+  ),#end fixedPanel
+  tags$head(tags$style(HTML('#Console_Les_Genes{
+                            background-color: #181918 ;color: #2d992d;
+                            font-family: "Lucida Console";border: none;
+                            }'))),
+  
+  ##################### MENU ############################
+  ####################################################### 
+  
+  fixedPanel(
+    draggable=T,
+    top  = 500, right  = 10, width = "15%",
+    box(title = span( icon("bars"),paste0(" Raccourci Menu")), 
+        #background = "navy",#status = "danger",
+        solidHeader = T, collapsible = T, collapsed = F, width = 12,
+        
+        actionLink(inputId ="LinkMes_requetes_Les_Genes" ,label ="* Mes requêtes" ),
+        br(),
+        actionLink(inputId ="LinkMa_console_Les_Genes" ,label ="* Ma Console" ),
+        br()
+        #actionLink(inputId ="LinkCatalogue_Les_Genes" ,label ="* Catalogues" )
+    )#end Box
+  )#end fixedPanel
+
+)#end fluidRow

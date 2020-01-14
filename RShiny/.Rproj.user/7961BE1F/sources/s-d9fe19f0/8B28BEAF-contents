@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Gestion_de_l_application/Ma_console",
+    "ui":"tabItem_Ma_console",
+    "server":"serverMa_console(input, output, session, globalInformation)",
+    "menu":null,
+    "fileToSource":["serverMa_console.R","uiMa_console.R"],
+    "priority":10,
+    "linkModule":null,
+    "rang":84,
+    "menu_en":null
+  }
+]

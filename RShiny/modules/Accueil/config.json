@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Accueil",
+    "ui":"tabItem_Accueil",
+    "server":"serverAccueil(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Accueil',tabName = 'Accueil',icon = icon('home'))",
+    "fileToSource":["serverAccueil.R","uiAccueil.R"],
+    "priority":5,
+    "linkModule":null,
+    "rang":1,
+    "menu_en":"menuItem(text='Home',tabName = 'Accueil',icon = icon('home'))"
+  }
+]

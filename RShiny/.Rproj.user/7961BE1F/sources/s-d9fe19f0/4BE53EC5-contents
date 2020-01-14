@@ -1,0 +1,39 @@
+uiConnexion<-
+  function(requete){
+    fluidRow(
+      column(7,
+             br(),
+             tags$img(src='IntegrOmics.png'),
+             br(),
+             tags$img(src='context.png'),
+             tags$img(src='objectif.png')),
+      column(4,
+             fluidPage(
+               titlePanel(title = " Connexion "),
+               wellPanel(
+                 textInput("user_pseudo","Nom d'utilisateur",placeholder="pseudo ou mail ..."),
+                 passwordInput("user_pwd","Mot de passe",placeholder="mot de passe..."),
+                 # fluidRow(column(6,checkboxInput(inputId ="checkbox_rester_connecte" ,label =" Rester connecté" ,value = FALSE)),
+                 #          column(6, a("Mot de passe oublié ?", href="#") )),
+                 
+                 checkboxInput(inputId ="checkbox_rester_connecte" ,label =" Rester connecté" ,value = FALSE),
+                 a("Mot de passe oublié ?", href="#"),br(),
+                 fluidRow(
+                   column(5,""),
+                   column(7,textOutput(outputId = "textoutput_test_connexion"))
+                 ),
+                 
+                 fluidRow(
+                   column(4,""),
+                   column(4,actionButton(inputId = "actionUser_connexion",label="Connexion",icon = icon("sign-in-alt "))),
+                   column(4,"")
+                   )
+               )
+             )
+            
+      ),
+      column(1,"")
+    )
+    
+    
+  }

@@ -1,0 +1,119 @@
+
+
+tabItem_Les_Genes<-
+  tabItem(
+    tabName = "Les_Genes",
+    h5("> Requêtes et analyses > Catalogue"),
+    #br(),
+    fluidPage(
+      
+      fluidRow(
+        column(8,
+               box(status = "primary",width = 12,uiOutput("uiselect_catalog_Les_Genes")),
+               box(
+                 #title = "Les variables",
+                 status = "primary",
+                 #solidHeader = TRUE,
+                 collapsible = TRUE,collapsed = F, width = 12,
+                 uiOutput("uiMessage_select_def_catalog_Les_Genes"),
+                 fluidRow(
+                   column(8,
+                          div(
+                            style = "height:300px; overflow-y: scroll;overflow-x: scroll;",
+                            dataTableOutput("data_frame_select_def_catalog_Les_Genes")
+                          ),
+                          uiOutput("uiselect_def_catalog_Les_Genes")
+                          
+                          ),
+                   
+                   column(4,uiOutput("uiguide_select_def_catalog_Les_Genes"))
+                 ),
+                 
+                 uiOutput("uirecap_select_def_catalog_Les_Genes"),
+                 actionButton(inputId = paste0("ActionValider_definition_Les_Genes"),
+                              label = "Valider le choix des définitions",
+                              icon("paper-plane"), 
+                              style="color: #fff; background-color: #3c936f; border-color: #36aa7a"
+                 ),
+                 uiOutput("ERROR_ActionValider_definition_Les_Genes")
+                 #uiOutput("uiCheckbox_def_catalog_Les_Genes")
+               ) #end box
+               
+
+        ),# end column
+        
+      ########################################################################################
+      ########################################################################################
+      
+        column(4,
+               box(status = "success",width = 12,uiOutput("uiInfo_catalog_Les_Genes"))
+              
+        )#end column
+      
+      
+      ),#end fluidRow
+      
+      
+      ##############################################################################################################
+      ##############################################################################################################
+      
+      
+      fluidRow(uiOutput("ui_interface_des_requetes_sur_les_definitions_Les_Genes")),
+      #fluidRow(uiOutput("uiEffectuer_requete_complet_Les_Genes")),#end fluidRow
+      fluidRow(uiOutput("uidata_frame_resultant")),
+      
+      ##############################################################################################################
+      ##############################################################################################################
+      
+      # fluidRow(
+      #   box(
+      #     title = "Résultat de ma requête", status = "success", solidHeader = TRUE,
+      #     collapsible = TRUE,collapsed = F, width = 12, 
+      #     fluidRow(
+      #       column(12,
+      #              tabBox(
+      #                #title = "First tabBox",
+      #                width = 12,
+      #                # The id lets us use input$tabset1 on the server to find the current tab
+      #                id = "tabset_uiVisualisation_Recherche_et_analyse_de_gene", 
+      #                tabPanel(title ="Données Résultantes " ,
+      #                         value = "Tab1_resultat_def_catalog_Les_Genes",
+      #                         icon = icon("list-alt"),
+      #                         uiOutput("uiTab1_resultat_def_catalog_Les_Genes")
+      #                ),
+      #                # tabPanel(title ="historique des requêtes " ,
+      #                #          value = "Tab2_Historique_des_requetes_Les_Genes",
+      #                #          icon = icon("th-list"),
+      #                #          uiOutput("uiTab2_Historique_des_requetes_Les_Genes")
+      #                # ),
+      #                tabPanel(title ="Visualisation des données " ,
+      #                         value = "Tab3_visualisation_def_catalog_Les_Genes",
+      #                         icon = icon("chart-line"),
+      #                         uiOutput("uiTab3_visualisation_def_catalog_Les_Genes")
+      #                )
+      #                
+      #              )#end tabBox
+      #       )#end column
+      #       
+      #     )#end fluidRow
+      #   )# end box
+      # ),
+      # fluidRow(
+      #   box(
+      #     title = "Visualisation des données", status = "success", solidHeader = TRUE,
+      #     collapsible = TRUE,collapsed = F, width = 12,
+      #     uiOutput("uiVisualisation_des_donnees")
+      #   ) #end box
+      # ),#end fluidRow
+      #######################################
+      ### serverLes_Genes_FlexBox.R #maConsol #Menu
+      source(
+        file.path(
+          paste0(app$config$pathToModule,"Requetes_et_visualisation/Les_Genes"),
+          "uiLes_Genes_FlexBox.R"),
+        local = TRUE)$value
+      
+      
+    )#fluidPage
+  )#end tabItem
+

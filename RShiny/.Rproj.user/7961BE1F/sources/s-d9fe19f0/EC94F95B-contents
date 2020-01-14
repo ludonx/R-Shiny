@@ -1,0 +1,25 @@
+[
+  {
+    "database":"iogold",
+    "catalog" : "",
+    "version":"",
+    "date":"6_14",
+    
+    "def_collection":"def_ko_definition_KEGGdb_",
+    "common_json_file_name":"",
+    "path":""
+    
+  },
+  {
+    "database":"iogold",
+    "catalog" : "cat_hs9.9_",
+    "version":"v2",
+    "date":"",
+    
+    "def_collection":"def_mgstaxonomy_",
+    "common_json_file_name":"",
+    "path":""
+    
+  }
+  
+]

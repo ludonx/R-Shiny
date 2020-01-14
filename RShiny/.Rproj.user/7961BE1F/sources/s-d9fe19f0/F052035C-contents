@@ -1,0 +1,90 @@
+observeEvent(input$ActionLogin,{
+  
+  if(globalInformation$user$connected==T){
+    # Create a Progress object
+    progress <- shiny::Progress$new()
+    # Make sure it closes when we exit this reactive, even if there's an error
+    on.exit(progress$close())
+    progress$set(message = "Restauration des données [Ma Console]", value = 0)
+    progress$inc(1/2)
+    
+    
+    pathUser<-globalInformation$user$path
+    dir_Ma_console<-paste(pathUser,"Ma_console",sep="/")
+    file_Ma_console_input_runcode_expr<-paste(dir_Ma_console,"input_runcode_expr.R",sep="/")
+    update_Val<-""
+    
+    if(dir.exists(dir_Ma_console) && file.exists(file_Ma_console_input_runcode_expr)){
+      update_Val<-read_file(file_Ma_console_input_runcode_expr)
+
+      globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_Ma_console_input_runcode_expr [Restaurer] :")
+    }else{
+      
+      globalInformation$Console<-paste0(globalInformation$Console,"\n>> fichier non trouvé :",file_Ma_console_input_runcode_expr)
+    }
+    
+    
+    #### on defini les variables et fonction qui seront accessible dans l'application 
+    listAceAutocomplete<-getListRfunction()
+    
+    listVarApp<-lapply(names(globalInformation),function(x){paste0("globalInformation$",x)})
+    names(listVarApp)<-lapply(listVarApp,function(x){paste0("{app_var}")})
+    
+    listVarAppUser<-lapply(names(globalInformation$user),function(x){paste0("globalInformation$user$",x)})
+    names(listVarAppUser)<-lapply(listVarAppUser,function(x){paste0("{app_var}")})
+    
+    appLib<-list("print_dataFrame","print_plot","print_text","clean_text", "clean_plot", "clean_dataframe")
+    #as.list(lsf.str())
+    names(appLib)<-lapply(appLib,function(x){paste0("{app_fun}")})
+    
+    
+    myLib<-list()
+    if(file.exists('./R/myLib.rds')){
+      myLib<-readRDS(file = './R/myLib.rds')
+      names(myLib)<-lapply(myLib,function(x){paste0("{myLib}")})
+    }
+    #cat(length(appLib))
+    
+    listAceAutocomplete<-append(listAceAutocomplete,appLib)
+    listAceAutocomplete<-append(listAceAutocomplete,listVarApp)
+    listAceAutocomplete<-append(listAceAutocomplete,listVarAppUser)
+    listAceAutocomplete<-append(listAceAutocomplete,myLib)
+    
+    updateAceEditor(session,
+                    editorId ="runcode_expr" ,
+                    value = update_Val,
+                    autoComplete = "live",
+                    autoCompleteList = listAceAutocomplete)
+    
+    ####################################################################################
+    file_Ma_console_text<-paste(dir_Ma_console,"text.txt",sep="/")
+    if(file.exists(file_Ma_console_text)){
+      globalInformation$Ma_console$text<-read_file(file = file_Ma_console_text)
+    }
+    
+    
+    
+    file_Ma_console_variables<-paste(dir_Ma_console,"list_Ma_console_variables.rds",sep="/")
+    if(file.exists(file_Ma_console_variables)){
+      tryCatch({
+        globalInformation$Ma_console$variables<-readRDS(file_Ma_console_variables)
+        
+        #globalInformation$Ma_console$text<-globalInformation$Ma_console$variables$text
+        globalInformation$Ma_console$dataFrame<-globalInformation$Ma_console$variables$dataFrame
+        globalInformation$Ma_console$plot<-globalInformation$Ma_console$variables$plot
+        
+        #names(list_Ma_console_variables)<-c("runcode_expr","text","dataFrame","plot")
+        
+        globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_Ma_console_variables [Restaurer] :")
+      }, error = function(err) {
+        globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_Ma_console_variables [ERROR in readRDS()] :")
+      })
+      
+      
+    }else{
+      globalInformation$Console<-paste0(globalInformation$Console,"\n>> fichier non trouvé :",file_Ma_console_variables)
+    }
+    progress$inc(1/2)
+  }#end if
+  
+})

@@ -1,0 +1,7 @@
+[
+  {
+    "name":"Gestion_de_l_application",
+    "menu":"menuItem('Gestion de l application',icon = icon('database'),menuSubItem('Gestion des utilisateurs',tabName = 'Gestion_des_utilisateurs',icon = icon('users')),menuSubItem('Gestion des projets', tabName = 'Gestion_des_projets',icon = icon('digital-tachograph')),menuSubItem('Visualisation des collections',tabName = 'Visualisation_des_collections',icon = icon('sitemap')))"
+    
+  }
+]

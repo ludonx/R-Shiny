@@ -1,0 +1,132 @@
+##################################################################
+getListRfunction<-
+  function(){
+    basicLib<-as.list(ls("package:base"))
+    names(basicLib)<-lapply(basicLib,function(x){paste0("{base}")})
+    
+
+    plotLib<-as.list(ls("package:ggplot2"))
+    names(plotLib)<-lapply(plotLib,function(x){paste0("{ggplot2}")})
+    
+    listAceAutocomplete<-basicLib
+    listAceAutocomplete<-append(listAceAutocomplete,plotLib)
+    return(listAceAutocomplete)
+  }
+
+# concatene deux data frame ------------------------------------------
+requeteExiste <- 
+  function(dataFrameMesRequetes, dataFrameMaRequete)
+  {
+    if(nrow(dataFrameMesRequetes)>0)
+    {
+      for(i in 1:nrow(dataFrameMesRequetes))
+      {
+        if(dataFrameMesRequetes[i,"nameDataFile"]==dataFrameMaRequete[1,"nameDataFile"]){
+          cat(dataFrameMesRequetes[i,"nameDataFile"],"--nameDataFile--",dataFrameMaRequete[1,"nameDataFile"])
+          return(T)
+        }
+        if(dataFrameMesRequetes[i,"name"]==dataFrameMaRequete[1,"name"]){
+          cat(dataFrameMesRequetes[i,"name"],"--name--",dataFrameMaRequete[1,"name"])
+          
+          if(dataFrameMesRequetes[i,"type"]==dataFrameMaRequete[1,"type"]){
+            cat(dataFrameMesRequetes[i,"type"],"--type--",dataFrameMaRequete[1,"type"])
+            
+              return(T)
+            
+          }
+        }
+      }
+      return(F)
+    }else{
+      return(F)
+    }
+    
+    
+  }
+#--------------------------------------------------------------------------------#
+#### permet de decrire un catalogue
+decrireCatalogue<-
+  function(row_dataFrameSelectedCatalog){
+    description<-row_dataFrameSelectedCatalog[1,"description"]
+    
+    # if(row_dataFrameSelectedCatalog[1,"name"]=="cat_hs9.9_v1"){
+    #   description<-paste0("<b>",row_dataFrameSelectedCatalog[1,"name"],"</b></br>")
+    #   description<-paste0(description,
+    #                      paste("Vous avez selectionner le catalogue ","<b>",row_dataFrameSelectedCatalog[1,"name"],"</b>", "</br>"))
+    #   description<-paste0(description,
+    #                      paste("il est constitué de ...", "</br>"))
+    # }
+    # 
+    #paste("<font color=\"#36aa7a\"><b>", "Ajout effectuer !", "</b></font>")
+    
+    return(description)
+  }
+
+
+#### mes messages uiMessage_select_def_catalog_Les_Genes
+uiMessage_select_def_catalog_Les_Genes<-
+  function(){
+    
+    msg<-paste0("<font color=\"#7a283c\"><b><u>Remarque : </u></b></font>"
+                ,"</br>",
+                "Pour éffectuer des requêtes il faut obligatoirement valider les définitions sélectionnées",
+                "</br></br>")
+
+    return(msg)
+  }
+
+#### mes messages uiMessage_liste_colonnes_def_catalog_Les_Genes
+uiMessage_liste_colonnes_def_catalog_Les_Genes<-
+  function(){
+    msg<-paste0("<font color=\"#7a283c\"><b><u>Remarque : </u></b></font>"
+                ,"</br>",
+                "la liste de colonnes ci-dessous est donnée uniquement à titre indicatif. ",
+                "Elle permet d'avoir un aperçu des données contenues dans les définitions sélectionnées",
+                "</br></br>")
+    
+    return(msg)
+  }
+
+#### mes messages uiMessage_liste_colonnes_def_catalog_Les_Genes
+uiMessage_ResultatConsoleR_Les_Genes<-
+  function(){
+    msg<-paste0("<font color=\"#7a283c\"><b><u>Remarque : </u></b></font>"
+                ,"</br>",
+                "Si vous voulez afficher les résultats des opérations éffectuer dans la console,il faut les sauvegardées dans la variable ",
+                "'globalInformation$Console'. </br>Exemple :</br> globalInformation$Console<-paste0(globalInformation$Console,'\n>> mon email est :',globalInformation$user$email)</br> ",
+                " Pour vider la console vous pouver entrer le code suivant globalInformation$Console<-'' ou cliquer sur le le bouton 'effacer' , vider la console est en générale utile lorsqu'on veux afficher des dataframes,",
+                " des listes ou tout autres structure composées.",
+                " <a target='_BLANK' href='http://www.google.com'>(consulter le tutoriel pour plus d'information)</a>",
+                "</br></br>")
+    
+    return(msg)
+  }
+
+#### uiMessage_Save_modification_ma_requete_Les_Genes
+uiMessage_Save_modification_ma_requete_Les_Genes<-
+  function(){
+    msg<-paste0("<font color=\"#7a283c\"><b><u>Astuce : </u></b></font>",
+                "Double cliquer sur une cellule du data frame pour la modifier. ",
+                
+                "</br>")
+    
+    return(msg)
+  }
+
+#### uiMessage_variable_ma_console
+
+uiMessage_variable_ma_console<-
+  function(){
+    msg<-paste0("<font color=\"#7a283c\"><h3><b><u>Les variable à utiliser : </u></b></h3></font>",
+                "En fonction du résultat de retour de la console, il faudra sauvegarder le résultat dans la variable qui correspond le mieux.",
+                "</br>",
+                "<b>globalInformation$modules$Ma_console$text</b> : Pour afficher du texte",
+                "</br>",
+                "<b>globalInformation$modules$Ma_console$dataFrame</b> : Pour afficher un data frame",
+                "</br>",
+                "<b>globalInformation$modules$Ma_console$plot</b> : Pour afficher un plot",
+                
+                "</br>")
+    
+    return(msg)
+  }

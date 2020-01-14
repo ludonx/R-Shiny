@@ -1,0 +1,46 @@
+tabItem_Visualisation_des_collections<-
+  tabItem(
+    tabName = "Visualisation_des_collections",
+    fluidRow(
+      column(4,""),
+      column(4,
+             actionButton(inputId = paste0("ActionReset_vdc"),
+                          label = "load data",
+                          icon("spinner"),
+                          style="color: #fff; background-color: #697580; border-color: #697580"
+             )
+             ),
+      column(4,"")
+      ),#end fluidRow
+    br(),
+    fluidRow(
+      box(
+        title = list(
+          fr="Liste des collections liées à l'application",
+          en="Application's collections")["en"], 
+        status = "success", solidHeader = TRUE,
+        collapsible = TRUE, width = 12,
+        div(style = 'overflow-x: scroll',dataTableOutput("dataTable_collections_vdc"))
+      )
+    ),#end fluidRow
+    br(),
+    fluidRow(
+      column(8,box(width = 12, div(style = 'overflow-x: scroll',dataTableOutput("dataTable_collections_vue_vdc")))),
+      column(4,
+             fluidRow(verbatimTextOutput(outputId = "verbatim_res_vdc")),
+             br(),
+             fluidRow(
+               column(6,passwordInput(inputId ="textInput_pwd_vdc" ,label ="Password" )),
+               column(6,
+                 actionButton(inputId = paste0("ActionDelete_collections_vdc"),
+                              label = "delete collection",
+                              icon("backspace"),
+                              style="color: #fff; background-color: #b81d1d; border-color: #b81d1d"
+                 )
+               )
+             )#end fluidRow
+             )
+    )#end fluidRow
+    
+  )#end tabItem
+

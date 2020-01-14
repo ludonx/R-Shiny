@@ -1,0 +1,11 @@
+[
+  {
+    "folderName":"Mes_requetes",
+    "ui":"tabItem_Mes_requetes",
+    "server":"serverMes_requetes(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Mes requêtes',tabName = 'Mes_requetes',icon = icon('list-alt'))",
+    "fileToSource":["serverMes_requetes.R","uiMes_requetes.R"],
+    "priority":10,
+    "linkModule":null
+  }
+]

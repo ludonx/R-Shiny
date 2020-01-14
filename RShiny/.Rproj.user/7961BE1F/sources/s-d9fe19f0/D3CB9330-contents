@@ -1,0 +1,9 @@
+[
+  {
+    "name":"Accueil",
+    "ui":"tabItem_Accueil",
+    "server":"serverAccueil(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Accueil',tabName = 'Accueil',icon = icon('home'))",
+    "fileToSource":["serverAccueil.R","uiAccueil.R"]
+  }
+]

@@ -1,0 +1,92 @@
+serverReglage<-
+  function(input, output, session,globalInformation){
+    
+    ## deconnection ---------------------------------------------------------------------------------
+    observeEvent(input$ActionDeconnexion,{
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = "Déconnexion en cours ...", value = 0)
+      progress$inc(1/3)
+      
+      app$users[[globalInformation$user$email]] <<- NULL
+      
+      
+      myUpdateQueryMongoSimple(
+        globalInformation$globalDatabase,
+        globalInformation$usersCollections,
+        myQueryUnique("email",globalInformation$user$email),
+        myQuerySetChaine("connecter",0)
+      )
+      progress$inc(1/3)
+      newdata<-data.frame()
+      for(i in 1:nrow(app$usersTracking)){
+        if(!is.null(app$usersTracking[i,"email"])){
+          if(app$usersTracking[i,"email"]==globalInformation$user$email){
+            
+          }else{
+            newdata<-rbind(newdata,app$usersTracking[i,])
+          }
+        }
+        
+        
+      }
+      cat("\navant : newdata = ",nrow(newdata))
+      cat("\navant : app$usersTracking = ",nrow(app$usersTracking))
+      # nouvelle liste des utilisateur connecter
+      app$usersTracking<-data.frame()
+      app$usersTracking<-rbind(app$usersTracking,newdata)
+      
+      cat("\napres : newdata = ",nrow(newdata))
+      cat("\napres : app$usersTracking = ",nrow(app$usersTracking))
+      globalInformation$user$connected = FALSE
+      
+      progress$inc(1/3)
+      
+      #### on recharge la session
+      session$reload()
+    })
+    
+    
+   
+    ## modifier la langue -------------------------------------------------------------------------
+    observe({
+      if(globalInformation$user$connected==T)
+      {
+        ## ** on ordonne le menu
+        my_config_df <- app$config_df[which(globalInformation$user$access_level>=app$config_df$priority & (!is.na(app$config_df$menu))),]
+        my_config_df <- my_config_df[order(my_config_df$rang),]
+        
+        ## ** choix du menu ----
+        if(input$pickerInputt_langue=="Fr"){
+          app$modules$menu <<- as.list(my_config_df$menu)
+          
+        }else if(input$pickerInputt_langue=="En"){
+          app$modules$menu <<- as.list(my_config_df$menu_en)
+        }
+        
+        
+        ## ** update du menu ----
+        output$sidebarMenuOutput<-renderMenu({
+          dataFrameLesUtilisateurs<-
+            findAll(
+              globalInformation$globalDatabase,
+              globalInformation$usersCollections
+            )
+          globalInformation$dataFrameLesUtilisateurs<-dataFrameLesUtilisateurs
+          
+          shinyjs::removeClass(selector = "body", class = "sidebar-collapse")
+          
+          
+          sidebarMenu(id="mainMenu",lapply(app$modules$menu, function(x){eval(parse(text = x))}))
+        })
+        
+        ## ** update de position du menu ----
+        #updateTabItems(session,inputId = "mainMenu",selected ="Reglage" )
+        
+      }#end if(globalInformation$user$connected==T)
+      
+      
+    })
+  }

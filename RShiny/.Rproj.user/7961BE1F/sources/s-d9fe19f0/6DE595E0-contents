@@ -1,0 +1,11 @@
+# observeEvent(input$ActionLogin,{
+#   
+#   if(globalInformation$user$connected==T){
+#     
+#     globalInformation$user$time<-Sys.time()
+#     globalInformation$modules$Ma_console$time<-Sys.time()
+#     
+#     
+#   }#end if
+#   
+# })

@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Nouveau_Module",
+    "ui":"tabItem_Nouveau_Module",
+    "server":"serverNouveau_Module(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Nouveau Module',tabName = 'Nouveau_Module',icon = icon('frog'))",
+    "fileToSource":["serverNouveau_Module.R","uiNouveau_Module.R"],
+    "priority":0,
+    "linkModule":null,
+    "rang":60,
+    "menu_en":"menuItem(text='New Module',tabName = 'Nouveau_Module',icon = icon('frog'))"
+  }
+]

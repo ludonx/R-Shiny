@@ -1,0 +1,112 @@
+
+############################### ENREGISTRE MA REQUETE ################################ 
+######################################################################################
+
+
+####### data frame
+output$data_frame_ma_requete_Les_Genes<-DT::renderDataTable({
+  mySelectDf<-globalInformation$modules$Catalogue$dataFrameRequete
+  DT::datatable(mySelectDf,filter = 'top',selection = 'none',editable = TRUE)
+})
+
+####### sauvegarder ma requête
+observeEvent(input$ActionSave_ma_requete_Les_Genes,{
+  req(input$textinput_name_ma_requete_Les_Genes)
+  req(input$textinput_type_ma_requete_Les_Genes)
+  
+  df<-globalInformation$modules$Catalogue$dataFrameRequete
+  df$type<-input$textinput_type_ma_requete_Les_Genes
+  df$name<-input$textinput_name_ma_requete_Les_Genes
+  df$user<-globalInformation$user$email
+  
+  reorderCol<-append(c("type", "name","user"),colnames(globalInformation$modules$Catalogue$dataFrameRequete))
+  df<-df[reorderCol]
+  
+  globalInformation$modules$Catalogue$dataFrameMesRequetes<-rbind(globalInformation$modules$Catalogue$dataFrameMesRequetes,df)
+  
+  output$uiERROR_ActionSave_ma_requete_Les_Genes<-renderText({
+    paste("<font color=\"#36aa7a\"><b>", "Enregistrement effectuer !", "</b></font>")
+  })
+}) 
+
+
+#### Config pour gerer les modification du data frame
+
+proxy_data_frame_ma_requete_Les_Genes = dataTableProxy('data_frame_ma_requete_Les_Genes')
+
+observeEvent(input$data_frame_ma_requete_Les_Genes_cell_edit, {
+  info = input$data_frame_ma_requete_Les_Genes_cell_edit
+  #str(info)
+  i = info$row
+  j = info$col
+  v = info$value
+  globalInformation$modules$Catalogue$dataFrameRequete[i, j] <<- DT::coerceValue(v, globalInformation$modules$Catalogue$dataFrameRequete[i, j])
+  replaceData(proxy_data_frame_ma_requete_Les_Genes, globalInformation$modules$Catalogue$dataFrameRequete, resetPaging = FALSE)  # important
+})
+
+
+# ####### modifier , exécuter et sauvegarder ma requête
+# observeEvent(input$ActionSave_modification_ma_requete_Les_Genes,{
+#   req(input$textinput_type_ma_requete_Les_Genes)
+#   req(input$textinput_name_ma_requete_Les_Genes)
+# 
+# 
+#   df<-globalInformation$modules$Catalogue$dataFrameRequete
+#   df$type<-input$textinput_type_ma_requete_Les_Genes
+#   df$name<-input$textinput_name_ma_requete_Les_Genes
+#   df$user<-globalInformation$user$email
+# 
+#   reorderCol<-append(c("type", "name","user"),colnames(globalInformation$modules$Catalogue$dataFrameRequete))
+#   df<-df[reorderCol]
+# 
+# 
+#   globalInformation$modules$Catalogue$dataFrameMesRequetes<-rbind(globalInformation$modules$Catalogue$dataFrameMesRequetes,df)
+#   
+# }) 
+
+## ActionSave_list_data_Les_Genes ----
+
+observeEvent(input$ActionSave_list_data_Les_Genes,{
+  req(input$textinput_name_list_data_save_Les_Genes)
+  fileName<-input$textinput_name_list_data_save_Les_Genes
+  
+  # Create a Progress object
+  progress <- shiny::Progress$new()
+  # Make sure it closes when we exit this reactive, even if there's an error
+  on.exit(progress$close())
+  progress$set(message = "Sauvegarde de [Catalogue]", value = 0)
+  progress$inc(1/2)
+  
+  pathUser<-globalInformation$user$path
+  dir_Catalogue<-paste(pathUser,"Catalogue",globalInformation$modules$Catalogue$CatalogSelected,sep="/")
+  if(!dir.exists(dir_Catalogue)){
+    dir.create(dir_Catalogue,recursive = T)
+  }
+  
+  
+  
+  ### file_Catalogue_variables
+  file_Catalogue_variables<-paste(dir_Catalogue,paste0(fileName,".rds"),sep="/")
+  if(file.exists(file_Catalogue_variables)){
+    file_Catalogue_variables<-paste(dir_Catalogue,paste0(fileName,"_new.rds"),sep="/")
+  }
+  
+  
+  globalInformation$modules$Catalogue$variables<-
+    list(
+      CatalogSelected=globalInformation$modules$Catalogue$CatalogSelected,
+      defSelected=globalInformation$modules$Catalogue$defSelected,
+      listSaveDataFrame=globalInformation$modules$Catalogue$listSaveDataFrame,
+      dataFrameContrainte=globalInformation$modules$Catalogue$dataFrameContrainte,
+      dataFrameRequete=globalInformation$modules$Catalogue$dataFrameRequete,
+      dataFrameMesRequetes=globalInformation$modules$Catalogue$dataFrameMesRequetes,
+      dataFrameCollectionData=globalInformation$modules$Catalogue$dataFrameCollectionData,
+      dataFrameCollectionDataValider=globalInformation$modules$Catalogue$dataFrameCollectionDataValider
+    )
+  saveRDS(globalInformation$modules$Catalogue$variables,file =file_Catalogue_variables)
+  
+  
+  globalInformation$Console<-paste0(globalInformation$Console,"\n>> ",fileName,"_new.rds [OK] \n")
+  #globalInformation$modules$Catalogue$time<-Sys.time()
+  progress$inc(1/2)
+})

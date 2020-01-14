@@ -1,0 +1,992 @@
+#dataTable_user
+
+serverLes_MGS_projets<-
+  function(input, output, session,globalInformation){
+    
+    output$uiprojectSelected_Les_MGS_projets <- renderUI({
+      listeProjet = globalInformation$user$projectSelected
+      nbMax<-length(listeProjet)
+      
+      if(nbMax){
+         projects_selected_list <- lapply(1:nbMax, function(i) {
+          # Create a Progress object
+          progress <- shiny::Progress$new()
+          # Make sure it closes when we exit this reactive, even if there's an error
+          on.exit(progress$close())
+          progress$set(message = "Récupération des informations sur les projets", value = 0)
+          
+          data<-findQuery(globalInformation$globalDatabase,
+                          globalInformation$collections,
+                          myQueryUnique("project",listeProjet[i])
+          )
+          
+          progress$inc(1)
+          box(status = "warning",width = 12,height = 350,
+              solidHeader = TRUE,#collapsible = TRUE,
+              title = listeProjet[i],
+              DT::datatable(data,selection = "none")
+          )#end box
+        })
+        
+        # Convert the list to a tagList - this is necessary for the list of items
+        # to display properly.
+        do.call(tagList, projects_selected_list)
+      }
+      })
+    #############################################################################################
+    
+    output$uiMyAbundance_Les_MGS_projets <- renderUI({
+      listeProjet = globalInformation$user$projectSelected
+      nbMax<-length(listeProjet)
+      if(nbMax){
+        projects_selected_list <- lapply(1:nbMax, function(i) {
+          # Create a Progress object
+          progress <- shiny::Progress$new()
+          # Make sure it closes when we exit this reactive, even if there's an error
+          on.exit(progress$close())
+          progress$set(message = "Récupération des informations sur les projets", value = 0)
+          
+          
+          progress$inc(1)
+          #fluidRow(
+          #  column(6,
+                   box(status = "primary",width = 6,#height = 350,
+                       solidHeader = TRUE,collapsible = TRUE,
+                       title = paste0(listeProjet[i]," : Les observations de MGS "),#listeProjet[i],
+                       fluidRow(
+                         column(4,
+                                fluidRow(
+                                  box(status = "danger",width = 12,
+                                      uiOutput(paste0("configPlot1",listeProjet[i]))
+                                  )#end box
+                                )
+                                
+                         ),
+                         column(8,
+                                div(
+                                  style = "overflow-x: scroll;",
+                                  DT::dataTableOutput(paste0("dataTable_Les_MGS_projets_",listeProjet[i]))
+                                ))
+                       )#end fluidRow
+                       
+                   )#end box
+          #  )#end column
+          #)#end fluidRow
+          
+        })
+        
+        # Convert the list to a tagList - this is necessary for the list of items
+        # to display properly.
+        do.call(tagList, projects_selected_list)
+      }
+    })
+   ################################# Les plots ############################
+    output$uiBoxplotBarcode_Les_MGS_projets <- renderUI({
+      listeProjet = globalInformation$user$projectSelected
+      nbMax<-length(listeProjet)
+      if(nbMax){
+        projects_selected_list <- lapply(1:nbMax, function(i) {
+          # Create a Progress object
+          progress <- shiny::Progress$new()
+          # Make sure it closes when we exit this reactive, even if there's an error
+          on.exit(progress$close())
+          progress$set(message = "Récupération des informations sur les projets", value = 0)
+          
+          
+          progress$inc(1)
+          fluidRow(
+            column(6,
+                   box(status = "warning",width = 12,#height = 350,
+                       solidHeader = TRUE,collapsible = TRUE,collapsed = TRUE,
+                       title = paste0(listeProjet[i]," : Boxplot"),
+                       uiOutput(paste0("uiboxplot_Les_MGS_projets_",listeProjet[i])),
+                       plotOutput(paste0("boxplot_Les_MGS_projets_",listeProjet[i])) %>% withSpinner(color="#0dc5c1")
+                   )#end box
+            ),# end column
+            column(6,
+                   box(status = "success",width = 12,
+                       solidHeader = TRUE,collapsible = TRUE,collapsed = TRUE,
+                       title = paste0(listeProjet[i]," : Bar code  "),
+                       uiOutput(paste0("uibarcode_Les_MGS_projets_",listeProjet[i])),
+                       plotOutput(paste0("barcode_Les_MGS_projets_",listeProjet[i])) %>% withSpinner(color="#0dc5c1")
+                   )#end box
+            )#end column
+            
+          )
+          
+        })
+        
+        # Convert the list to a tagList - this is necessary for the list of items
+        # to display properly.
+        do.call(tagList, projects_selected_list)
+      }
+    })
+    
+    
+    ############################ DYNAMIC ADD #################################
+    ##########################################################################
+    
+    observe({
+      listeProjet<-globalInformation$user$projectSelected
+      globalInformation$user$projectSelectedData<-vector("list",length(listeProjet))
+      for (i in 1:length(listeProjet)) {
+        # mesplot<-reactiveValues(
+        #   boxplot<-"",
+        #   barplot<-""
+        # )
+        # Need local so that each item gets its own number. Without it, the value
+        # of i in the renderPlot() will be the same across all instances, because
+        # of when the expression is evaluated.
+        local({
+          #cat(paste("luso",listeProjet))
+          tabname <-paste0("dataTable_Les_MGS_projets_",listeProjet[i])
+          
+          boxplotname<-paste0("boxplot_Les_MGS_projets_",listeProjet[i])
+          uibarcodename<-paste0("uibarcode_Les_MGS_projets_",listeProjet[i])
+          uiboxplotname<-paste0("uiboxplot_Les_MGS_projets_",listeProjet[i])
+          barcodename<-paste0("barcode_Les_MGS_projets_",listeProjet[i])
+          uiconfProjet1<-paste0("configPlot1",listeProjet[i])
+          uiconfProjet2<-paste0("configPlot2",listeProjet[i])
+          ######################################################################
+          
+          dataProject<-
+            findQuery(
+              globalInformation$globalDatabase,
+              globalInformation$projectsCollections,
+              myQueryUnique("name",listeProjet[i]))
+          listeCollectionProjet<-dataProject[1,"collections"]
+          
+          data<-reactive({
+            # Create a Progress object
+            progress <- shiny::Progress$new()
+            # Make sure it closes when we exit this reactive, even if there's an error
+            on.exit(progress$close())
+            progress$set(message = paste0("Récupération des informations du projet : ",listeProjet[i]), value = 0)
+            
+            mydata<-findAll(
+              dataProject[1,"database"],
+              paste("obs_mgs",dataProject[1,"catalog"],dataProject[1,"name"],sep="_")
+              #10000#myQueryUnique("project",listeProjet[i])
+            )
+            progress$inc(1)
+            return(mydata)
+          })
+          ##########################################################################
+          
+          ######################################################################
+          
+          dataSampleMeta<-reactive({
+            # Create a Progress object
+            progress <- shiny::Progress$new()
+            # Make sure it closes when we exit this reactive, even if there's an error
+            on.exit(progress$close())
+            progress$set(message = paste0("Récupération des informations du projet : ",listeProjet[i]), value = 0)
+            
+            mydata<-findAll(
+              dataProject[1,"database"],
+              paste("obs_samplemetadata",dataProject[1,"version"],dataProject[1,"name"],sep="_")
+              #paste("obs_samplemetadata","v1",dataProject[1,"name"],sep="_")
+            )
+            #globalInformation$user$projectSelectedData[i]<-mydata
+            progress$inc(1)
+            return(mydata)
+            
+          })
+         
+          ######################################################################
+            
+          output[[tabname]] <-DT::renderDataTable({
+            
+           
+            #listCol<-append(listCol,colnames(data())[1:2] )
+            DT::datatable(data(),selection = 'single') 
+          })
+          
+          ######################################################################
+          
+          ######################################################################
+          output[[uiconfProjet1]]<-renderUI({
+            fluidPage(
+              fluidRow(
+                selectInput(inputId =paste0("selectMerge",uiconfProjet1) ,label ="Sélectionnez les colonnes du projet pour la fusion" ,choices =names(dataSampleMeta()) ,multiple = T),
+                actionButton(inputId = paste0("Actionfusion",uiconfProjet1),
+                             label = "Visualisation des plots",
+                             icon("chart-bar"), 
+                             style="color: #fff; background-color: #b73263; border-color: #b7319c"
+                )
+              )
+            )
+          })
+
+         
+          
+          ###################################################################################
+          
+          output[[uiboxplotname]]<-renderUI({
+            nbrMax<-length(names(dataMerge()))
+            choixInt<-c()
+            choixChar<-c()
+            for(j in 1:nbrMax){
+              if(class(dataMerge()[,names(dataMerge())[j]])=="character"){
+                choixChar<-append(choixChar,names(dataMerge())[j])
+              }else{
+                choixInt<-append(choixInt,names(dataMerge())[j])
+                
+              }
+              
+            }
+            fluidRow(
+              
+              column(5,
+                selectInput(inputId =paste0("selectBasicCol",uiconfProjet2) ,label ="Sélectionnée la variable de statification X" ,choices =names(dataMerge()) ,selected =names(dataMerge())[2],multiple = F)
+              ),
+              column(4,
+                #column(6,selectInput(inputId =paste0("selectStratificationInt",uiconfProjet2) ,label ="Stratification par valeur numerique" ,choices =choixInt ,multiple = F)),
+                column(12,selectInput(inputId =paste0("selectStratificationChar",uiconfProjet2) ,label ="Stratification via des variables Discrètes " ,choices =choixChar ,selected =choixChar[1],multiple = T))
+              ),
+              column(1,
+                     actionButton(inputId = paste0("Action_save_pdf",uiboxplotname),
+                                  label = "pdf",
+                                  icon("file-pdf"), 
+                                  style="color: #fff; background-color: #4f7766; border-color: #4f7766"
+                     )
+              ),#end column
+              
+              column(1,
+                     actionButton(inputId = paste0("Action_save_jpg",uiboxplotname),
+                                  label = "jpeg",
+                                  icon("image"), 
+                                  style="color: #fff; background-color: #91319e; border-color: #91319e"
+                     )
+              )#end column
+             
+            )
+            
+          })
+          ###################################################################################
+          observeEvent(input[[paste0("Action_save_pdf",uiboxplotname)]],{
+           
+            
+            if(class(dataMerge()[,input[[paste0("selectBasicCol",uiconfProjet2)]]])=="character"){
+              plot<-myBoxPlot(dataMerge(),input[[paste0("selectBasicCol",uiconfProjet2)]],"value",TRUE)
+            }else{
+              plot<-myPointPlot(dataMerge(),input[[paste0("selectBasicCol",uiconfProjet2)]],"value")
+            }
+            
+            plot<-plot+ylab(dataMerge()["mgsId"][1,1])
+            
+            
+            strat1<-input[[paste0("selectStratificationChar",uiconfProjet2)]]
+            if(length(strat1)>1){
+              strat1<-input[[paste0("selectStratificationChar",uiconfProjet2)]][1]
+              strat2<-input[[paste0("selectStratificationChar",uiconfProjet2)]][2]
+              plot + facet_grid(dataMerge()[strat1][,1]~dataMerge()[strat2][,1])
+            }else if(length(strat1)==1){
+              plot + facet_grid(.~dataMerge()[strat1][,1]) 
+            }else{
+              plot
+            }
+            
+            
+            g <- arrangeGrob(plot, ncol=1) #generates g
+            ggsave(file=paste0("boxplotname",".pdf"), g) #saves g
+          })
+          ################################################################
+          observeEvent(input[[paste0("Action_save_jpg",uiboxplotname)]],{
+            
+            
+            if(class(dataMerge()[,input[[paste0("selectBasicCol",uiconfProjet2)]]])=="character"){
+              plot<-myBoxPlot(dataMerge(),input[[paste0("selectBasicCol",uiconfProjet2)]],"value",TRUE)
+            }else{
+              plot<-myPointPlot(dataMerge(),input[[paste0("selectBasicCol",uiconfProjet2)]],"value")
+            }
+            
+            plot<-plot+ylab(dataMerge()["mgsId"][1,1])
+            
+            
+            strat1<-input[[paste0("selectStratificationChar",uiconfProjet2)]]
+            if(length(strat1)>1){
+              strat1<-input[[paste0("selectStratificationChar",uiconfProjet2)]][1]
+              strat2<-input[[paste0("selectStratificationChar",uiconfProjet2)]][2]
+              plot + facet_grid(dataMerge()[strat1][,1]~dataMerge()[strat2][,1])
+            }else if(length(strat1)==1){
+              plot + facet_grid(.~dataMerge()[strat1][,1]) 
+            }else{
+              plot
+            }
+            g <- arrangeGrob(plot, ncol=1) #generates g
+            ggsave(file=paste0("boxplotname",".jpg"), g) #saves g
+            
+            
+           
+          })
+          ###################################################################################
+          ###################################################################################
+          
+          output[[uibarcodename]]<-renderUI({
+            choix_free<-c('none','free','free_x','free_y')
+            #-----------------------------------------------#
+            nbrMax<-length(names(dataMerge()))
+            choixInt<-c()
+            choixChar<-c()
+            for(j in 1:nbrMax){
+              if(class(dataMerge()[,names(dataMerge())[j]])=="character"){
+                choixChar<-append(choixChar,names(dataMerge())[j])
+              }else{
+                choixInt<-append(choixInt,names(dataMerge())[j])
+                
+              }
+              
+            }
+            fluidRow(
+              column(5,
+                     selectInput(inputId =paste0("selectStratificationChar",uibarcodename) ,label ="Stratification via des variables Discrètes " ,choices =choixChar ,multiple = T)
+                     
+              ),
+              column(4,
+                     selectInput(inputId =paste0("selectFree",uibarcodename) ,label ='<< scales >>' ,
+                                 choices =choix_free ,selected =choix_free[1],multiple = F)
+                     ),
+             
+              column(1,
+                     actionButton(inputId = paste0("Action_save_pdf",uibarcodename),
+                                  label = "pdf",
+                                  icon("file-pdf"), 
+                                  style="color: #fff; background-color: #4f7766; border-color: #4f7766"
+                     )
+              ),#end column
+              
+              column(1,
+                     actionButton(inputId = paste0("Action_save_jpg",uibarcodename),
+                                  label = "jpeg",
+                                  icon("image"), 
+                                  style="color: #fff; background-color: #91319e; border-color: #91319e"
+                     )
+              )#end column
+            )
+           
+            
+          })
+          
+          
+          
+          ###################################################################################
+          ###################################### FUSION ############################
+          ##########################################################################
+          
+          dataMerge<-eventReactive(input[[paste0("Actionfusion",uiconfProjet1)]],{
+            req(input[[paste0(tabname,"_rows_selected")]])
+            req(input[[paste0("selectMerge",uiconfProjet1)]])
+            
+            dat<-data()[input[[paste0(tabname,"_rows_selected")]],]
+            dat$mgsId <- row.names(dat)
+            dat.m <- melt(dat, id.vars = "mgsId")
+            dat.sample<-dataSampleMeta()
+            dat.merge <- merge(dat.m, dat.sample[,input[[paste0("selectMerge",uiconfProjet1)]]], by.x = "variable", by.y = 0)
+          })
+          
+          ################################ Fusion BareCode #####################
+          #######################################################################
+          dataMergeBareCode<-eventReactive(input[[paste0("Actionfusion",uiconfProjet1)]],{
+            req(input[[paste0(tabname,"_rows_selected")]])
+            req(input[[paste0("selectMerge",uiconfProjet1)]])
+            
+            # Create a Progress object
+            progress <- shiny::Progress$new()
+            # Make sure it closes when we exit this reactive, even if there's an error
+            on.exit(progress$close())
+            progress$set(message = paste0("Récupération des gènes du mgs : ",listeProjet[i]), value = 0)
+            nbr<-4
+            progress$inc(1/nbr)
+            
+            mydata<-findAll(dataProject[1,"database"],paste0(row.names(data())[c(input[[paste0(tabname,"_rows_selected")]])]))
+            
+            progress$inc(1/nbr, detail="melt")
+            
+            data<-mydata
+            data.melt <- as.data.frame(data)
+            data.melt$gene <- as.character(rownames(data.melt))
+            data.melt <- melt(data.melt)
+            data.melt$gene <- factor(data.melt$gene, levels = as.character(rownames(data)))
+            data.melt$variable <- factor(data.melt$variable, levels = colnames(data))
+            dat.sample<-dataSampleMeta()
+            progress$inc(1/nbr, detail="Merge en cours")
+            mydataMerge<-merge(data.melt,dat.sample[,input[[paste0("selectMerge",uiconfProjet1)]]],by.x = "variable", by.y = 0)
+            
+            return(mydataMerge)
+            
+          })
+          ###########################################################################
+          ###################### Les plots ################
+          
+          ############################################################################
+          observeEvent(input[[paste0(tabname,"_rows_selected")]],{
+            
+            #output$texte<-renderText(paste(row.names(data()[input[[paste0(tabname,"_rows_selected")]],]),sep='---'))
+            
+            output[[boxplotname]]<-renderPlot({
+              req(input[[paste0("selectBasicCol",uiconfProjet2)]])
+              req(input[[paste0("selectStratificationChar",uiconfProjet2)]])
+
+              # dat<-data()[input[[paste0(tabname,"_rows_selected")]],]
+              # dat$mgsId <- row.names(dat)
+              # dat.m <- melt(dat, id.vars = "mgsId")
+              if(class(dataMerge()[,input[[paste0("selectBasicCol",uiconfProjet2)]]])=="character"){
+                plot<-myBoxPlot(dataMerge(),input[[paste0("selectBasicCol",uiconfProjet2)]],"value",TRUE)
+              }else{
+                plot<-myPointPlot(dataMerge(),input[[paste0("selectBasicCol",uiconfProjet2)]],"value")
+              }
+               
+              plot<-plot+ylab(dataMerge()["mgsId"][1,1])
+              
+              
+              strat1<-input[[paste0("selectStratificationChar",uiconfProjet2)]]
+              if(length(strat1)>1){
+                strat1<-input[[paste0("selectStratificationChar",uiconfProjet2)]][1]
+                strat2<-input[[paste0("selectStratificationChar",uiconfProjet2)]][2]
+                plot + facet_grid(dataMerge()[strat1][,1]~dataMerge()[strat2][,1])
+              }else if(length(strat1)==1){
+                plot + facet_grid(.~dataMerge()[strat1][,1]) 
+              }else{
+                plot
+              }
+              
+              
+              #ggplot(dat.m, aes(mgsId, value)) + geom_boxplot()
+            })#end plot
+            
+            cag<-reactive({
+              cagName<-row.names(data())[c(input[[paste0(tabname,"_rows_selected")]])]
+              progress <- shiny::Progress$new()
+              # Make sure it closes when we exit this reactive, even if there's an error
+              on.exit(progress$close())
+              progress$set(message = paste0("Récupération des données de ",cagName," : ",listeProjet[i]), value = 0)
+              nbr<-2
+              progress$inc(1/nbr)
+              mydata<-findAll(dataProject[1,"database"],paste0(cagName))
+              progress$inc(1/nbr)
+              
+              mydata
+            })
+            ##############
+            ####### étape 1: je marge des data
+            mydataMeltMerge<-reactive({
+              req(input[[paste0(tabname,"_rows_selected")]])
+              req(input[[paste0("selectMerge",uiconfProjet1)]])
+              progress <- shiny::Progress$new()
+              # Make sure it closes when we exit this reactive, even if there's an error
+              on.exit(progress$close())
+              progress$set(message = paste0("Merge des data : ",listeProjet[i]), value = 0)
+              nbr<-2
+              progress$inc(1/nbr)
+              mydata<-myMeltMerge(cag(),dataSampleMeta()[,input[[paste0("selectMerge",uiconfProjet1)]]])
+              
+              progress$inc(1/nbr)
+              return(mydata)
+            })
+            ##############
+            ####### étape 2: je defini le plot
+            myPlot<-reactive({
+              progress <- shiny::Progress$new()
+              # Make sure it closes when we exit this reactive, even if there's an error
+              on.exit(progress$close())
+              progress$set(message = paste0("Initialisation du bare code : ",listeProjet[i]), value = 0)
+              nbr<-2
+              progress$inc(1/nbr)
+             
+              plot<-myBarcodePlot(mydataMeltMerge())
+              progress$inc(1/nbr)
+              return(plot)
+            })
+            #######
+            #### étape 2 : je modifier le plot en fonction des variable de stratification et du scales
+            output[[barcodename]]<-renderPlot({
+              
+              #req(input[[paste0("selectStratificationChar",uibarcodename)]])
+              req(input[[paste0("selectFree",uibarcodename)]])
+              # Create a Progress object
+              progress <- shiny::Progress$new()
+              # Make sure it closes when we exit this reactive, even if there's an error
+              on.exit(progress$close())
+              progress$set(message = paste0("Aplication de la nouvelle configuration: ",listeProjet[i]), value = 0)
+              nbr<-3
+              progress$inc(1/nbr)
+              
+              
+              
+              strat1<-input[[paste0("selectStratificationChar",uibarcodename)]]
+              strat<-c()
+              if(length(strat1)>1){
+                strat1<-input[[paste0("selectStratificationChar",uibarcodename)]][1]
+                strat2<-input[[paste0("selectStratificationChar",uibarcodename)]][2]
+                strat<-append(strat,strat1)
+                strat<-append(strat,strat2)
+              }else if(length(strat1)==1){
+                strat1<-input[[paste0("selectStratificationChar",uibarcodename)]][1]
+                strat<-append(strat,strat1)
+              }
+              progress$inc(1/nbr)
+              
+              plot<-myPlotStrat(mydataMeltMerge(),myPlot(),strat,input[[paste0("selectFree",uibarcodename)]])
+
+              
+              progress$inc(1/nbr)
+              #myBarcodePlot1(cag,proj,c("Time"))
+              
+              return(plot)
+
+
+            })#end plot
+            ###################################################################################
+            observeEvent(input[[paste0("Action_save_pdf",uibarcodename)]],{
+              strat1<-input[[paste0("selectStratificationChar",uibarcodename)]]
+              strat<-c()
+              if(length(strat1)>1){
+                strat1<-input[[paste0("selectStratificationChar",uibarcodename)]][1]
+                strat2<-input[[paste0("selectStratificationChar",uibarcodename)]][2]
+                strat<-append(strat,strat1)
+                strat<-append(strat,strat2)
+              }else if(length(strat1)==1){
+                strat1<-input[[paste0("selectStratificationChar",uibarcodename)]][1]
+                strat<-append(strat,strat1)
+              }
+              
+              
+              plot<-myPlotStrat(mydataMeltMerge(),myPlot(),strat,input[[paste0("selectFree",uibarcodename)]])
+              g <- arrangeGrob(plot, ncol=1) #generates g
+              ggsave(file=paste0("barcodename",".pdf"), g) #saves g
+            })
+            #######################################################
+            observeEvent(input[[paste0("Action_save_jpg",uibarcodename)]],{
+              strat1<-input[[paste0("selectStratificationChar",uibarcodename)]]
+              strat<-c()
+              if(length(strat1)>1){
+                strat1<-input[[paste0("selectStratificationChar",uibarcodename)]][1]
+                strat2<-input[[paste0("selectStratificationChar",uibarcodename)]][2]
+                strat<-append(strat,strat1)
+                strat<-append(strat,strat2)
+              }else if(length(strat1)==1){
+                strat1<-input[[paste0("selectStratificationChar",uibarcodename)]][1]
+                strat<-append(strat,strat1)
+              }
+              
+              
+              plot<-myPlotStrat(mydataMeltMerge(),myPlot(),strat,input[[paste0("selectFree",uibarcodename)]])
+              g <- arrangeGrob(plot, ncol=1) #generates g
+              ggsave(file=paste0("barcodename",".jpg"), g) #saves g
+              
+            })
+            ###################################################################################
+            
+          })#end observeevent
+
+          
+        })#end local
+      }#end for
+      
+    })#end observer
+    
+    ##################################################################
+    ########################################### COMPARAISON #####################
+    
+    ##### on récupérer la liste des colonnes commune à chaque projet
+    colDataCompar<-eventReactive(input$ActionComparLes_MGS_projets_All,{
+      listeProjet<-globalInformation$user$projectSelected
+      tx<-"ludo"
+      colDataCompar<-list()
+      dataProject2<-data.frame()
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Récupération des colonnes communes à chaque projet: "), value = 0)
+      nbr<-length(listeProjet)*3
+      for(n in 1:length(listeProjet)){
+        #local({
+        progress$inc(1/nbr,detail = paste(listeProjet[n]))
+        
+        dataProject2<-
+          findQuery(
+            globalInformation$globalDatabase,
+            globalInformation$projectsCollections,
+            myQueryUnique("name",listeProjet[n]))
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"dataSampleMetaC"))
+        #dataCompar<-rbind(dataCompar,dataProject2)
+        x<-dataProject2[1,"database"]
+       
+       
+        dataSampleMetaC<-findAll(
+          x,
+          paste("obs_samplemetadata",dataProject2[1,"version"],dataProject2[1,"name"],sep="_")
+        )
+        if(n==1){
+          colDataCompar<-colnames(dataSampleMetaC)
+        }else{
+          colDataCompar<-intersect(colDataCompar,colnames(dataSampleMetaC))
+        }
+        
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"intersect"))
+        
+
+      }#end for
+      return(colDataCompar)
+    })
+    ##########################################################################################
+    observeEvent(input$ActionComparLes_MGS_projets_All,{
+      listeProjet<-globalInformation$user$projectSelected
+      tx<-"ludo"
+      dataCompar<-data.frame()
+      dataProject2<-data.frame()
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Récupération des données pour comparaison: "), value = 0)
+      nbr<-length(listeProjet)*3
+      for(n in 1:length(listeProjet)){
+        #local({
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"projet info"))
+        tabname2 <-paste0("dataTable_Les_MGS_projets_",listeProjet[n])
+        
+        uiconfProjet1Compar<-paste0("configPlot1",listeProjet[n])
+        
+        ## il faut selectionnées les MGS à comparer pour chaque projet
+        req(input[[paste0(tabname2,"_rows_selected")]])
+        
+        
+        
+        dataProject2<-
+          findQuery(
+            globalInformation$globalDatabase,
+            globalInformation$projectsCollections,
+            myQueryUnique("name",listeProjet[n]))
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"mgs info"))
+        #dataCompar<-rbind(dataCompar,dataProject2)
+        x<-dataProject2[1,"database"]
+        # if(is.null(x)){
+        #   #x<-dataProject2[1,"database"]
+        #   x<-globalInformation$globalDatabase#'iogold_microbaria' # juste pour eviter le bug de 2h # base de données non sélectionée
+        # }
+        
+        
+        dataMGS<-findAll(
+          x,
+          paste("obs_mgs",dataProject2[1,"catalog"],dataProject2[1,"name"],sep="_")
+        )
+        dataSampleMetaC<-findAll(
+          x,
+          paste("obs_samplemetadata",dataProject2[1,"version"],dataProject2[1,"name"],sep="_")
+          #paste("obs_samplemetadata","v1",dataProject2[1,"name"],sep="_")
+        )
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n]," melt, merge et rbind"))
+        
+        
+        ###########################################################################################################
+        #@ludo
+        
+        ## on récupére les information de la ligne sélectionée
+        dat<-dataMGS[input[[paste0(tabname2,"_rows_selected")]],]
+        dat$mgsId <- row.names(dat)
+        dat.m <- melt(dat, id.vars = "mgsId")
+        dat.m$projet <- paste(dataProject2[1,"name"],row.names(dat),sep="::")#dataProject2[1,"name"]
+        
+        dat.sample<-dataSampleMetaC
+        #
+        #if(ncol(dat.sample)>0){
+        dat.merge <- merge(dat.m, dat.sample[,colDataCompar()], by.x = "variable", by.y = 0)
+        
+        dataCompar<-rbind(dataCompar,dat.merge)
+        #}
+        
+        #dataCompar<-dat.m
+        #dat.sample<-dataSampleMeta()
+        #dat.merge <- merge(dat.m, dat.sample[,input[[paste0("selectMerge",uiconfProjet1)]]], by.x = "variable", by.y = 0)
+        #####################################################################################################################
+        
+        #tx<-paste(tx,input[[paste0(tabname2,"_rows_selected")]])
+        # })#end local
+      }#end for
+      
+      
+      #output$texte<-renderText(paste(tx,sep='---'))
+      output$dataTable_Les_MGS_projets_All <-DT::renderDataTable({
+        DT::datatable(dataCompar,selection = 'single')
+      })
+      output$uiplotOutput_Les_MGS_projets_All<-({
+        req(input$ActionComparLes_MGS_projets_All)
+        plotOutput(paste0("plotOutput_Les_MGS_projets_All"))%>% withSpinner(color="#0dc5c1")
+        
+      })
+      output$plotOutput_Les_MGS_projets_All<-renderPlot({
+        req(input[[paste0("selectStratificationChar_Les_MGS_projets_All")]])
+        plot<-myBoxPlot(dataCompar,"projet","value",TRUE)
+        strat1<-input[[paste0("selectStratificationChar_Les_MGS_projets_All")]]
+        if(length(strat1)>1){
+          strat1<-input[[paste0("selectStratificationChar_Les_MGS_projets_All")]][1]
+          strat2<-input[[paste0("selectStratificationChar_Les_MGS_projets_All")]][2]
+          plot<- plot + facet_grid(dataCompar[strat1][,1]~dataCompar[strat2][,1])
+        }else if(length(strat1)==1){
+          plot<- plot + facet_grid(.~dataCompar[strat1][,1]) 
+        }else{
+          plot
+        }
+        
+        
+        plot
+      })
+      output$uiConfig_Les_MGS_projets_All<-renderUI({
+        nbrMax<-length(names(dataCompar))
+        choixInt<-c()
+        choixChar<-c()
+        for(j in 1:nbrMax){
+          if(class(dataCompar[,names(dataCompar[j])])=="character"){
+            choixChar<-append(choixChar,names(dataCompar[j]))
+          }else{
+            choixInt<-append(choixInt,names(dataCompar[j]))
+            
+          }
+          
+        }
+        
+        fluidRow(
+          #column(6,selectInput(inputId =paste0("selectStratificationInt",uiconfProjet2) ,label ="Stratification par valeur numerique" ,choices =choixInt ,multiple = F)),
+          column(12,selectInput(inputId =paste0("selectStratificationChar_Les_MGS_projets_All") ,label ="Stratification via des variables Discrètes " ,choices =choixChar ,selected =choixChar[1],multiple = T))
+        )
+        
+        
+      })
+      
+    })### end observeEvent
+    
+    ##########################################################################################################
+    ####################################### Comparaison de Bare code #########################################
+    
+    colDataCompar_Barecode<-eventReactive(input$ActionCompar_Barecode_Les_MGS_projets_All,{
+      listeProjet<-globalInformation$user$projectSelected
+      tx<-"ludo"
+      colDataCompar<-list()
+      dataProject2<-data.frame()
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Récupération des colonnes communes à chaque projet: "), value = 0)
+      nbr<-length(listeProjet)*3
+      for(n in 1:length(listeProjet)){
+        #local({
+        progress$inc(1/nbr,detail = paste(listeProjet[n]))
+        
+        dataProject2<-
+          findQuery(
+            globalInformation$globalDatabase,
+            globalInformation$projectsCollections,
+            myQueryUnique("name",listeProjet[n]))
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"dataSampleMetaC"))
+        #dataCompar<-rbind(dataCompar,dataProject2)
+        x<-dataProject2[1,"database"]
+        
+        
+        dataSampleMetaC<-findAll(
+          x,
+          paste("obs_samplemetadata",dataProject2[1,"version"],dataProject2[1,"name"],sep="_")
+        )
+        if(n==1){
+          colDataCompar<-colnames(dataSampleMetaC)
+        }else{
+          colDataCompar<-intersect(colDataCompar,colnames(dataSampleMetaC))
+        }
+        
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"intersect"))
+        
+        
+      }#end for
+      return(colDataCompar)
+    })
+   ######################################### le plot #################################################
+    #################################################################################################
+  
+    #ActionComparLes_MGS_projets_All 
+    observeEvent(input$ActionCompar_Barecode_Les_MGS_projets_All,{
+      listeProjet<-globalInformation$user$projectSelected
+      
+      dataCompar<-data.frame()
+      dataProject2<-data.frame()
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Récupération des données pour comparaison: "), value = 0)
+      nbr<-length(listeProjet)*5
+      for(n in 1:length(listeProjet)){
+        ####################################################################################################
+        ################# cette partie est une répetition de la partie précedente ##########################
+        #local({
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"projet info"))
+        tabname2 <-paste0("dataTable_Les_MGS_projets_",listeProjet[n])
+        
+        #uiconfProjet1Compar<-paste0("configPlot1",listeProjet[n])
+        
+        ## il faut selectionnées les MGS à comparer pour chaque projet
+        req(input[[paste0(tabname2,"_rows_selected")]])
+        
+        
+        # on cherche la base de données ou se trouve le projet
+        dataProject2<-
+          findQuery(
+            globalInformation$globalDatabase,
+            globalInformation$projectsCollections,
+            myQueryUnique("name",listeProjet[n]))
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n],"mgs info"))
+        #dataCompar<-rbind(dataCompar,dataProject2)
+        x<-dataProject2[1,"database"]
+        
+        
+        dataMGS<-findAll(
+          x,
+          paste("obs_mgs",dataProject2[1,"catalog"],dataProject2[1,"name"],sep="_")
+        )
+        dataSampleMetaC<-findAll(
+          x,
+          paste("obs_samplemetadata",dataProject2[1,"version"],dataProject2[1,"name"],sep="_")
+          #paste("obs_samplemetadata","v1",dataProject2[1,"name"],sep="_")
+        )
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n]," melt, merge et rbind"))
+        
+        #################################################################################
+        ###########################################################################################################
+        #@ludo
+        
+        ## on récupére les information de la ligne sélectionée
+        dat<-dataMGS[input[[paste0(tabname2,"_rows_selected")]],]
+        cagName<-row.names(dat)
+        
+        progress$inc(1/nbr,detail = paste(listeProjet[n]," recherche des données: ",cagName))
+        
+        cag<-findAll(x,cagName)
+        progress$inc(1/nbr,detail = paste(listeProjet[n]," melte merge avec les données du projet : ",cagName))
+        data<-cag
+        data.melt <- as.data.frame(data)
+        data.melt$gene <- as.character(rownames(data.melt))
+        data.melt <- melt(data.melt)
+        data.melt$gene <- factor(data.melt$gene, levels = as.character(rownames(data)))
+        data.melt$variable <- factor(data.melt$variable, levels = colnames(data))
+        data.melt$projet<-paste(dataProject2[1,"name"],cagName,sep="::")
+        mydata<-data.melt
+        
+        
+        dat.sample<-dataSampleMetaC
+        #
+        #if(ncol(dat.sample)>0){
+        data.merge <- merge(data.melt, dat.sample[,colDataCompar_Barecode()], by.x = "variable", by.y = 0)
+        
+        dataCompar<-rbind(dataCompar,data.merge)
+        #}
+        
+      }#end for
+      
+      
+      # #output$texte<-renderText(paste(tx,sep='---'))
+      # output$dataTable_Les_MGS_projets_All <-DT::renderDataTable({
+      #   DT::datatable(dataCompar,selection = 'single')
+      # })
+      
+      myPlot<-reactive({
+        progress <- shiny::Progress$new()
+        # Make sure it closes when we exit this reactive, even if there's an error
+        on.exit(progress$close())
+        progress$set(message = paste0("Initialisation du bare code comparaison : ",listeProjet[i]), value = 0)
+        nbr<-2
+        progress$inc(1/nbr)
+        
+        plot<-myBarcodePlot(dataCompar)
+        progress$inc(1/nbr)
+        return(plot)
+      })
+      ############ renderUI plot 
+      output$uiplotOutput_Barecode_Les_MGS_projets_All<-renderUI({
+        req(input$ActionCompar_Barecode_Les_MGS_projets_All)
+        plotOutput(paste0("plotOutput_Barecode_Les_MGS_projets_All"))%>% withSpinner(color="#0dc5c1")
+      })
+      output$plotOutput_Barecode_Les_MGS_projets_All<-renderPlot({
+        req(input[[paste0("selectStratificationChar_Barecode_Les_MGS_projets_All")]])
+       
+        #req(input[[paste0("selectStratificationChar",uibarcodename)]])
+        #req(input[[paste0("selectFree",uibarcodename)]])
+        # Create a Progress object
+        progress <- shiny::Progress$new()
+        # Make sure it closes when we exit this reactive, even if there's an error
+        on.exit(progress$close())
+        progress$set(message = paste0("Génération du plot de comparaison: ",listeProjet[i]), value = 0)
+        nbr<-3
+        progress$inc(1/nbr,detail='configuration du plot')
+        
+        
+        
+       
+        strat1<-input[[paste0("selectStratificationChar_Barecode_Les_MGS_projets_All")]]
+        strat<-c()
+        if(length(strat1)>1){
+          strat1<-input[[paste0("selectStratificationChar_Barecode_Les_MGS_projets_All")]][1]
+          strat2<-input[[paste0("selectStratificationChar_Barecode_Les_MGS_projets_All")]][2]
+          strat<-append(strat,strat1)
+          strat<-append(strat,strat2)
+        }else if(length(strat1)==1){
+          strat1<-input[[paste0("selectStratificationChar_Barecode_Les_MGS_projets_All")]][1]
+          strat<-append(strat,strat1)
+        }
+        progress$inc(1/nbr,detail='affichage du plot')
+        
+        plot<-myPlotStrat(dataCompar,myPlot(),strat,"free_x")#input[[paste0("selectFree",uibarcodename)]]
+        progress$inc(1/nbr)
+        #plot<-myBarcodePlot(dataCompar)
+        plot
+      })
+      
+      output$uiConfig_Barecode_Les_MGS_projets_All<-renderUI({
+        nbrMax<-length(names(dataCompar))
+        choixInt<-c()
+        choixChar<-c()
+        for(j in 1:nbrMax){
+          if(class(dataCompar[,names(dataCompar[j])])=="character"){
+            choixChar<-append(choixChar,names(dataCompar[j]))
+          }else{
+            choixInt<-append(choixInt,names(dataCompar[j]))
+            
+          }
+          
+        }
+        
+        fluidRow(
+          column(12,selectInput(inputId =paste0("selectStratificationChar_Barecode_Les_MGS_projets_All") ,label ="Stratification via des variables Discrètes " ,choices =choixChar ,selected =choixChar[1],multiple = T))
+        )
+        
+        
+      })
+    })### end observeevent
+    
+    
+    ### tabPanel_compar_cag_Les_MGS_projets.R
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_MGS_projets/server"),
+        "tabPanel_compar_cag_Les_MGS_projets.R"),
+      local = TRUE)$value
+    
+    
+    #### box_uiplot_barcode_compar_cag_Les_MGS_projets
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_MGS_projets/server"),
+        "box_uiplot_barcode_compar_cag_Les_MGS_projets.R"),
+      local = TRUE)$value
+
+  }
+  

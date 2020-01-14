@@ -1,0 +1,111 @@
+globalInformation<-reactiveValues(
+  
+  # nom de la base de données principales
+  # cette base de données contient notamment les different catalogues
+  # et les collections liées à la gestion de l'application
+  globalDatabase=app$config$globalDatabase,
+  
+  # collection des utilisateurs
+  usersCollections=app$config$usersCollection,
+  
+  # collection des utilisateurs suprimmer
+  usersCollectionsDelete=app$config$usersCollectionDelete,
+  
+  # collection des projets
+  projectsCollections=app$config$projectsCollections,
+  
+  # collection des catalogues
+  catalogCollections=app$config$catalogCollections,
+  
+  # cette varaible contiendra le nom de la collection qui 
+  # regroupe les informations relatives à chaque collection 
+  # potentielement utiliser dans l'application
+  collections=app$config$mainCollections,
+  
+  # collection qui contient les different lien entre les collections des catalogues
+  jointuresCollections=app$config$jointuresCollections,
+  
+  # collection qui contient les different lien entre les collections des catalogues
+  typeColumnCollections=app$config$typeColumnCollections,
+  
+  
+  # collection qui contient les couverture des differents modules
+  moduleCoverageCollections=app$config$moduleCoverageCollections,
+  
+  
+  # workDirectory
+  workDirectory=app$config$workDirectory,
+  
+  # contiendra les résultats des differentes requêtes de l'utilisateur via la console 
+  # contiendra également des retour sur le fonctionnement de l'application. c'est juste des impression
+  Console="",
+  
+  
+  # cette variable est une structure qui sera utiliser 
+  # pour stocker les informations sur un utilisateur connecté
+  user=""
+  
+)
+
+
+# TODO : activate user db TRUE/FALSE
+
+# structure des utilisateurs
+# cette structure permet de caractériser un utilisateur
+globalInformation$user <- reactiveValues(
+  id="",
+  nom="-----",
+  prenom="-----",
+  time=Sys.time(),
+  save_session_time=1,
+  
+  # when empty authentification is activated and will fill up the different variables
+  path="",
+  email="",
+  profil="",
+  connected=F,
+  
+  # # otherwise we can fix this
+  # path="/home/ltekam/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/shiny_app/root@g.c",
+  # # path="/tmp/shiny_app/root@g.c"
+  # email="root@g.c",
+  # profil="administrateur",
+  # # profil="administrateur",
+  # connected = TRUE ,
+
+  admin="",#@ ludo à suprimer
+  projectSelected=list(),
+  defSelected=list(),
+  catalogSelected="",
+  
+  ########################################################
+  myQueryGene="",
+  myQueryGeneTraduction="",
+  myResultGene=-1,
+  
+  
+  ########################################################
+  dataFrameLesUtilisateurs="",
+  
+  ########################################################
+  # le data frame qui contiendra les contrainte de la requête deja exécuté par l'utilisateur
+  dataFrameContrainte=data.frame(),
+  dataFrameRequete=data.frame(),
+  
+  dataFrameRequete_Mes_requetes=data.frame(),
+  dataFrameMesRequetes=data.frame(),
+  #dataFrameMesRequetes_distinct=data.frame(),
+  #dataFrameContrainte=list(),
+  # liste qui contiendra les resultat des requêtes @ludo à supprimer éventuelement plutard et utiliser dataFrameRequete
+  nbrElemRequete=list(), 
+  # liste des dataFrame sauvegarder par l'utilisateur
+  listSaveDataFrame=list(),
+  # liste des nom des dataFrame sauvegarder par l'utilisateur
+  #listNameSaveDataFrame=list(), 
+  ########################################################
+  
+  dataFrameCollectionData=list(),
+  dataFrameCollectionDataValider=list(),
+  ########################################################
+  projectSelectedData=list() #@ludo à supprimer
+)

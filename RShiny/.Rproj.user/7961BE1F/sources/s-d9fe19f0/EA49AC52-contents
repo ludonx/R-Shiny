@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Connexion",
+    "ui":"tabItem_Connexion",
+    "server":"serverConnexion(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Connexion',tabName = 'Connexion',icon = icon('chalkboard-teacher'))",
+    "fileToSource":["serverConnexion.R","uiConnexion.R"],
+    "priority":11,
+    "linkModule":null,
+    "rang":0,
+    "menu_en":"menuItem(text='Login',tabName = 'Connexion',icon = icon('chalkboard-teacher'))"
+  }
+]

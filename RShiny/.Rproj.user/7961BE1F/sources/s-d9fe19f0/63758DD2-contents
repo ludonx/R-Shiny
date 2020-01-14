@@ -1,0 +1,15 @@
+[
+  {
+    "folderName":"Gestion_de_l_application/Gestion_des_projets",
+    "ui":"tabItem_Gestion_des_projets",
+    "server":"serverGestion_des_projets(input, output, session,globalInformation)",
+    "menu":null,
+    
+    "fileToSource":["serverGestion_des_projets.R","uiGestion_des_projets.R"],
+    
+    "priority":10,
+    "linkModule":null,
+    "rang":91,
+    "menu_en":null
+  }
+]

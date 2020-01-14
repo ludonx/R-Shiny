@@ -1,0 +1,396 @@
+#dataTable_user
+serverSauvegarde<-
+  function(input, output, session,globalInformation){
+    
+    # Restauration des données : aprés connection  -------------------------------------------------------------
+    observeEvent(input$ActionLogin,{
+      
+      if(globalInformation$user$connected==T){
+        # set module time ----
+        # est utilisé pour gérer les sauvegardes de module
+        globalInformation$user$time<-Sys.time()
+        globalInformation$modules$Ma_console$time<-Sys.time()
+        
+        # Restauration des log ----
+        pathUser<-globalInformation$user$path
+        dir_feedback<-paste(pathUser,"feedback",sep="/")
+        file_feedback<-paste(dir_feedback,"feedback.log",sep="/")
+        
+        if(dir.exists(pathUser) && file.exists(file_feedback)){
+          
+        }#end if
+        else{
+          
+          
+          dir.create(dir_feedback,recursive = T)
+          file.create(file_feedback)
+          
+          write("\n>> Bienvenue sur INTEGROMICS SHINY APP :)",file = file_feedback,sep = "")
+        }
+        
+        
+        globalInformation$Console<-paste0(read_file(file_feedback),globalInformation$Console)
+        
+        
+        ## set to user home directory 
+        x<-"setwd(globalInformation$user$path)"
+        eval(parse(text = x))
+        
+        ## read user 
+        file_globalInformation<-paste(globalInformation$user$path,"globalInformation.rds",sep="/")
+        if(file.exists(file_globalInformation)){
+          tryCatch({
+            # Restauration de globalInformation.rds ----
+            #globalInformation$user <- readRDS(file_globalInformation)
+            app$users[[globalInformation$user$email]] <<- readRDS(file_globalInformation)# globalInformation$user
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_globalInformation [Restaurer] :")
+          }, error = function(err) {
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_globalInformation [ERROR in readRDS()] :")
+          })
+          
+          
+        }else{
+          app$users[[globalInformation$user$email]] <<- list()
+          globalInformation$Console<-paste0(globalInformation$Console,"\n>> fichier non trouvé :",file_globalInformation)
+        }
+        
+        # Restauration des données Ma_console -------------------------------------------------------------------------------
+        # Create a Progress object
+        progress <- shiny::Progress$new()
+        # Make sure it closes when we exit this reactive, even if there's an error
+        on.exit(progress$close())
+        progress$set(message = "Restauration des données [Ma Console]", value = 0)
+        progress$inc(1/2)
+        
+        
+        pathUser <- globalInformation$user$path
+        dir_Ma_console<-paste(pathUser,"Ma_console",sep="/")
+        file_Ma_console_input_runcode_expr<-paste(dir_Ma_console,"input_runcode_expr.R",sep="/")
+        update_Val<-""
+        
+        if(dir.exists(dir_Ma_console) && file.exists(file_Ma_console_input_runcode_expr)){
+          update_Val<-read_file(file_Ma_console_input_runcode_expr)
+          
+          globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_Ma_console_input_runcode_expr [Restaurer] :")
+        }else{
+          
+          globalInformation$Console<-paste0(globalInformation$Console,"\n>> fichier non trouvé :",file_Ma_console_input_runcode_expr)
+        }
+        
+        
+        #### on defini les variables et fonction qui seront accessible dans l'application 
+        listAceAutocomplete<-getListRfunction()
+        
+        listVarApp <- lapply(names(globalInformation),function(x){paste0("globalInformation$",x)})
+        names(listVarApp) <- lapply(listVarApp,function(x){paste0("{app_var}")})
+        
+        listVarAppUser<-lapply(names(globalInformation$user),function(x){paste0("globalInformation$user$",x)})
+        names(listVarAppUser)<-lapply(listVarAppUser,function(x){paste0("{app_var}")})
+        
+        listVarAppUser1<-lapply(names(globalInformation$module),function(x){paste0("globalInformation$module$",x)})
+        names(listVarAppUser)<-lapply(listVarAppUser1,function(x){paste0("{app_var}")})
+        
+        appLib <- list("print_dataFrame","print_plot","print_text","clean_text", "clean_plot", "clean_dataframe")
+        
+        names(appLib) <- lapply(appLib, function(x){paste0("{app_fun}")})
+        
+        # print(search())
+        # print(ls(.GlobalEnv))
+        
+        myLib <- ls.str(.GlobalEnv)
+        
+        # myLib <- list()
+        #as.list(lsf.str())
+        
+        # if(file.exists('./R/myLib.rds'))
+        # {
+        #   # print("myLib is found")
+        #   # myLib <- readRDS(file = './R/myLib.rds')
+        #   # names(myLib) <- lapply(myLib, function(x){paste0("{myLib}")})
+        # }else
+        # {
+        #   print("myLib is not found")
+        # }
+        #cat(length(appLib))
+        
+        listAceAutocomplete <- append(listAceAutocomplete,appLib)
+        listAceAutocomplete <- append(listAceAutocomplete,listVarApp)
+        listAceAutocomplete <- append(listAceAutocomplete,listVarAppUser)
+        listAceAutocomplete <- append(listAceAutocomplete,listVarAppUser1)
+        listAceAutocomplete <- append(listAceAutocomplete,myLib)
+        
+        updateAceEditor(session,
+                        editorId ="runcode_expr" ,
+                        value = update_Val,
+                        autoComplete = "live",
+                        autoCompleteList = listAceAutocomplete)
+        
+        #----------------------------------------------------------------------------------------------------#
+        file_Ma_console_text <- paste(dir_Ma_console,"text.txt",sep="/")
+        if(file.exists(file_Ma_console_text))
+        {
+          globalInformation$modules$Ma_console$text<-read_file(file = file_Ma_console_text)
+        }
+        
+        
+        
+        file_Ma_console_variables<-paste(dir_Ma_console,"list_Ma_console_variables.rds",sep="/")
+        if(file.exists(file_Ma_console_variables)){
+          tryCatch({
+            globalInformation$modules$Ma_console$variables<-readRDS(file_Ma_console_variables)
+            
+            #globalInformation$modules$Ma_console$text<-globalInformation$modules$Ma_console$variables$text
+            globalInformation$modules$Ma_console$dataFrame<-globalInformation$modules$Ma_console$variables$dataFrame
+            globalInformation$modules$Ma_console$plot<-globalInformation$modules$Ma_console$variables$plot
+            
+            #names(list_Ma_console_variables)<-c("runcode_expr","text","dataFrame","plot")
+            
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_Ma_console_variables [Restaurer] :")
+          }, error = function(err) {
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_Ma_console_variables [ERROR in readRDS()] :")
+          })
+          
+          
+        }else{
+          globalInformation$Console<-paste0(globalInformation$Console,"\n>> fichier non trouvé :",file_Ma_console_variables)
+        }
+        progress$inc(1/2)
+        
+        
+      }#end if
+      
+    })
+    
+
+    
+    # Sauvegarde Log -------------------------------------------------------------
+    dateTimer <- reactiveTimer(intervalMs = 30*1000)#à modifier ludo
+    
+    observe({
+      input$sliderInput_save_session_time
+      globalInformation$user$save_session_time <- input$sliderInput_save_session_time*60
+    })
+    
+    
+    observe({
+      debut<-as.numeric(as.POSIXct(globalInformation$user$time))
+      fin<-as.numeric(as.POSIXct(dateTimer()))
+      diff_time<-fin-debut
+      # cat('\n',dateTimer())
+      # cat('\n',fin)
+      #cat('\n',diff_time)
+      if((diff_time)>globalInformation$user$save_session_time){
+        #cat('\n innn :',dateTimer())
+        if(globalInformation$user$connected==T){
+          #cat('\n innnCon :',dateTimer())
+          # Create a Progress object
+          progress <- shiny::Progress$new()
+          # Make sure it closes when we exit this reactive, even if there's an error
+          on.exit(progress$close())
+          progress$set(message = "Sauvegarde en cours", value = 0)
+          progress$inc(1/2)
+          
+          
+          pathUser<-globalInformation$user$path
+          dir_feedback<-paste(pathUser,"feedback",sep="/")
+          file_feedback<-paste(dir_feedback,"feedback.log",sep="/")
+          
+          if(file.exists(file_feedback)){
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>> ------- Sauvegarde en cours ...[",Sys.time(),"] \n")
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_feedback [OK] ")
+            write(globalInformation$Console,file = file_feedback)
+            
+          }else{
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>>------- Sauvegarde impossible : le fichier n'existe pas via le chemin ",file_feedback)
+            globalInformation$Console<-paste0(globalInformation$Console,"\n>> ------- Creation du fichier en cour ...")
+            
+            dir.create(dir_feedback,recursive = T)
+            file.create(file_feedback)
+            
+            write(paste0(globalInformation$Console,"\n>> Bienvenue sur INTEGROMICS SHINY APP :)"),file = file_feedback,sep = "")
+            
+          }
+          
+          
+          
+          
+          file_globalInformation <- paste(globalInformation$user$path,"globalInformation.rds",sep="/")
+          
+         
+          # Sauvegarde de globalInformation.rds ----
+          #isolate(saveRDS(object = reactiveValuesToList(globalInformation$user), file = file_globalInformation))
+          #isolate(gi <- reactiveValuesToList(globalInformation))
+          #isolate( gi$user <- reactiveValuesToList(globalInformation$user))
+          gi <- reactiveValuesToList(globalInformation)
+          cat("okgi")
+          
+          gi$user <- reactiveValuesToList(globalInformation$user)
+          cat("okuser")
+          #isolate(gi$modules <- reactiveValuesToList(globalInformation$modules))
+          cat("ok")
+          #for( i in 1:length(globalInformation$modules)){gi$modules[names(globalInformation$modules)[i]] <- reactiveValuesToList(globalInformation$module[i])}
+          for( i in 1:length(globalInformation$modules)){cat("\n-",names(globalInformation$modules)[i])}
+          
+          saveRDS(object = gi, file = file_globalInformation)
+          cat("ok")
+          # isolate(
+          #   gi <- reactiveValuesToList(globalInformation),
+          #   gi$user <- reactiveValuesToList(globalInformation$user),
+          #   gi$modules <- reactiveValuesToList(globalInformation$modules),
+          #   for( i in 1:length(globalInformation$modules)){gi$modules[names(globalInformation$modules)[i]] <- reactiveValuesToList(globalInformation$module[i])},
+          #   
+          #   saveRDS(object = reactiveValuesToList(gi), file = file_globalInformation),
+          #   cat("ok"))
+          
+           #saveRDS(object = globalInformation$user, file = file_globalInformation)
+          
+          globalInformation$user$time <- Sys.time()
+          progress$inc(1/2)
+        }
+      }
+      
+    })
+    
+    # Sauvegarde module Ma_console ---------------------------------------------------------
+    
+    dateTimer_Ma_console<-reactiveTimer(intervalMs = 30*1000)#chaque 1min on verifier la sauvegarde # à modifier ludo
+    observe({
+      input$sliderInput_save_session_time_Ma_console
+      globalInformation$modules$Ma_console$save_session_time<-input$sliderInput_save_session_time_Ma_console*60
+    })
+    
+    observe({
+      debut<-as.numeric(as.POSIXct(globalInformation$modules$Ma_console$time))
+      fin<-as.numeric(as.POSIXct(dateTimer_Ma_console()))
+      diff_time<-fin-debut
+      
+      if((diff_time)>globalInformation$modules$Ma_console$save_session_time){
+        if(globalInformation$user$connected==T){
+          
+          # Create a Progress object
+          progress <- shiny::Progress$new()
+          # Make sure it closes when we exit this reactive, even if there's an error
+          on.exit(progress$close())
+          progress$set(message = "Sauvegarde de [Ma Console]", value = 0)
+          progress$inc(1/2)
+          
+          pathUser<-globalInformation$user$path
+          dir_Ma_console<-paste(pathUser,"Ma_console",sep="/")
+          if(!dir.exists(dir_Ma_console)){
+            dir.create(dir_Ma_console,recursive = T)
+          }
+          ### file_Ma_console_input_runcode_expr
+          file_Ma_console_input_runcode_expr<-paste(dir_Ma_console,"input_runcode_expr.R",sep="/")
+          if(!file.exists(file_Ma_console_input_runcode_expr)){
+            file.create(file_Ma_console_input_runcode_expr)
+          }
+          write(input$runcode_expr,file = file_Ma_console_input_runcode_expr)
+          
+          
+          ### file_Ma_console_text
+          file_Ma_console_text<-paste(dir_Ma_console,"text.txt",sep="/")
+          if(!file.exists(file_Ma_console_text)){
+            file.create(file_Ma_console_text)
+          }
+          write(globalInformation$modules$Ma_console$text,file = file_Ma_console_text)
+          
+          
+          
+          ### file_Ma_console_variables
+          file_Ma_console_variables<-paste(dir_Ma_console,"list_Ma_console_variables.rds",sep="/")
+          if(!file.exists(file_Ma_console_variables)){
+            file.create(file_Ma_console_variables)
+          }
+          
+          globalInformation$modules$Ma_console$variables<-
+            list(input$runcode_expr,
+                 globalInformation$modules$Ma_console$text,
+                 globalInformation$modules$Ma_console$dataFrame,
+                 globalInformation$modules$Ma_console$plot)
+          names(globalInformation$modules$Ma_console$variables)<-c("runcode_expr","text","dataFrame","plot")
+          saveRDS(globalInformation$modules$Ma_console$variables,file =file_Ma_console_variables)
+          
+          
+          globalInformation$Console<-paste0(globalInformation$Console,"\n>> file_Ma_console_input_runcode_expr [OK] \n")
+          globalInformation$Console<-paste0(globalInformation$Console,"\n>> list_Ma_console_variables [OK] \n")
+          globalInformation$modules$Ma_console$time<-Sys.time()
+          progress$inc(1/2)
+        }
+      }
+      
+    })#end observe({
+    
+    
+    # Sauvegarde module Catalogue ---------------------------------------------------------
+    
+    dateTimer_Catalogue<-reactiveTimer(intervalMs = 30*1000)#chaque 1min on verifier la sauvegarde # à modifier ludo
+    observe({
+      input$sliderInput_save_session_time_Catalogue
+      globalInformation$modules$Catalogue$save_session_time<-input$sliderInput_save_session_time_Catalogue*60
+    })
+    
+    observe({
+      debut<-as.numeric(as.POSIXct(globalInformation$modules$Catalogue$time))
+      fin<-as.numeric(as.POSIXct(dateTimer_Catalogue()))
+      diff_time<-fin-debut
+      
+      if((diff_time)>globalInformation$modules$Catalogue$save_session_time){
+        if(globalInformation$user$connected==T){
+          
+          # Create a Progress object
+          progress <- shiny::Progress$new()
+          # Make sure it closes when we exit this reactive, even if there's an error
+          on.exit(progress$close())
+          progress$set(message = "Sauvegarde de [Catalogue]", value = 0)
+          progress$inc(1/2)
+          
+          pathUser<-globalInformation$user$path
+          dir_Catalogue<-paste(pathUser,"Catalogue",globalInformation$modules$Catalogue$CatalogSelected,sep="/")
+          #cat('\n--',globalInformation$modules$Catalogue$CatalogSelected)
+          if(!dir.exists(dir_Catalogue)){
+            dir.create(dir_Catalogue,recursive = T)
+          }
+          
+          
+          
+          ### file_Catalogue_variables
+          file_Catalogue_variables<-paste(dir_Catalogue,"list_Catalogue_variables.rds",sep="/")
+          if(!file.exists(file_Catalogue_variables)){
+            file.create(file_Catalogue_variables)
+          }
+          
+          
+          globalInformation$modules$Catalogue$variables<-
+            list(
+              CatalogSelected=globalInformation$modules$Catalogue$CatalogSelected,
+              defSelected=globalInformation$modules$Catalogue$defSelected,
+              listSaveDataFrame=globalInformation$modules$Catalogue$listSaveDataFrame,
+              dataFrameContrainte=globalInformation$modules$Catalogue$dataFrameContrainte,
+              dataFrameRequete=globalInformation$modules$Catalogue$dataFrameRequete,
+              dataFrameMesRequetes=globalInformation$modules$Catalogue$dataFrameMesRequetes,
+              dataFrameCollectionData=globalInformation$modules$Catalogue$dataFrameCollectionData,
+              dataFrameCollectionDataValider=globalInformation$modules$Catalogue$dataFrameCollectionDataValider
+            )
+          saveRDS(globalInformation$modules$Catalogue$variables,file =file_Catalogue_variables)
+          
+          
+          globalInformation$Console<-paste0(globalInformation$Console,"\n>> list_Catalogue_variables [OK] \n")
+          globalInformation$modules$Catalogue$time<-Sys.time()
+          progress$inc(1/2)
+        }
+      }
+      
+    })#end observe({
+    
+    # sauvegarde de session ---------------------------------------------------------
+    observeEvent(input$ActionSave_session_Sauvegarde,{
+      
+      #pathUser<-globalInformation$user$path
+      dir_from<-paste0("../current_session")
+      dir_to<-paste0("../sessions/","current_session_",as.character(Sys.time()))
+      dir.create(dir_to,recursive=TRUE)
+      
+      file.copy(from = dir_from, to = dir_to, recursive = TRUE, overwrite = TRUE)
+    })
+    
+  }#end serverSauvegarde

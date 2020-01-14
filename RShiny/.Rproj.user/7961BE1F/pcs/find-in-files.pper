@@ -1,0 +1,10 @@
+{
+    "dialog-state" : {
+        "caseSensitive" : false,
+        "filePatterns" : [
+        ],
+        "path" : "~/GIT_LAB_test/iogoldg/RShiny",
+        "query" : "/mainDashboardPage/mainDashboardBody",
+        "regex" : false
+    }
+}

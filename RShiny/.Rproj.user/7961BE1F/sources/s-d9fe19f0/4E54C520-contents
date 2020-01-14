@@ -1,0 +1,36 @@
+[
+  {
+    "database":"database_of_project",
+    "project":"Microbaria",
+    "catalog" : "cat_hs9.9_",
+    "version":"v1",
+    
+    "obs_collection":"obs_mgs_",
+    "common_json_file_name":"",
+    "path":""
+    
+  },
+  {
+    "database":"database_of_project",
+    "project":"Microbaria",
+    "catalog" : "cat_hs9.9_",
+    "version":"v1",
+    
+    "obs_collection":"obs_genes_",
+    "common_json_file_name":"",
+    "path":""
+    
+  },
+  {
+    "database":"database_of_project",
+    "project":"Microbaria",
+    "catalog" : "",
+    "version":"v1",
+    
+    "obs_collection":"obs_samplemetadata_",
+    "common_json_file_name":"",
+    "path":""
+    
+  }
+  
+]

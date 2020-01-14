@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Patient_analyses",
+    "ui":"tabItem_Patient_analyses",
+    "server":"serverPatient_analyses(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Analyse des Patients',tabName = 'Patient_analyses',icon = icon('user-md'))",
+    "fileToSource":["serverPatient_analyses.R","uiPatient_analyses.R"],
+    "priority":0,
+    "linkModule":null,
+    "rang":40,
+    "menu_en":"menuItem(text='Patient analysis',tabName = 'Patient_analyses',icon = icon('user-md'))"
+  }
+]

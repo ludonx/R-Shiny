@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Gestion_de_l_application",
+    "ui":null,
+    "server":null,
+    "menu":"menuItem('Gestion de l application',icon = icon('database'),menuSubItem('Gestion des utilisateurs',tabName = 'Gestion_des_utilisateurs',icon = icon('users')),menuSubItem('Gestion des projets', tabName = 'Gestion_des_projets',icon = icon('digital-tachograph')),menuSubItem('Visualisation des collections',tabName = 'Visualisation_des_collections',icon = icon('sitemap')))",
+    "fileToSource":null,
+    "priority":10,
+    "linkModule":null,
+    "rang":90,
+    "menu_en":"menuItem('Setting',icon = icon('database'),menuSubItem('Users',tabName = 'Gestion_des_utilisateurs',icon = icon('users')),menuSubItem('Projects', tabName = 'Gestion_des_projets',icon = icon('digital-tachograph')),menuSubItem('Collections',tabName = 'Visualisation_des_collections',icon = icon('sitemap')),menuSubItem('Console',tabName = 'Ma_console',icon = icon('laptop-code')))"
+  }
+]

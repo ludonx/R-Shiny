@@ -1,0 +1,245 @@
+#dataTable_user
+serverPatient_analyses<-
+  function(input, output, session,globalInformation){
+   
+    ## uiselect_catalog_Patient_analyses ----
+    ### on recupere la liste des catalogues
+    dataFrameCatalog<-reactive({
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = "Récupération de la liste des catalogues", value = 0)
+      progress$inc(1/2)
+      data<-findAll(globalInformation$globalDatabase,globalInformation$catalogCollections)
+      
+      progress$inc(1/2)
+      return(data)
+    })
+    
+    ### on selection un catalog
+    output$uiselect_catalog_Patient_analyses<-renderUI({
+      choices="Pas de catalogue !!"
+      if(nrow(dataFrameCatalog())>0)choices = dataFrameCatalog()[,"name"]
+      
+      selectInput(inputId ="select_catalog_Patient_analyses" ,
+                  label ="Sélectionner un catalogue : " ,
+                  choices = choices,
+                  selected =choices[1],
+                  multiple = F)
+    })
+    
+    
+    ## uiselect_projet_Patient_analyses ----
+    dataFrameProject<-reactive({
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = "Récupération des projets", value = 0)
+      progress$inc(1/2)
+
+      data<-
+        getProjectUser(
+          globalInformation$globalDatabase,
+          globalInformation$usersCollections,
+          globalInformation$projectsCollections,
+          globalInformation$user$email,
+          input$select_catalog_Patient_analyses
+        )
+      progress$inc(1/2)
+      return(data)
+    })
+    
+    output$uiselect_projet_Patient_analyses<- renderUI({
+      req(input$select_catalog_Patient_analyses)
+      choices="Pas de projet !!"
+      if(nrow(dataFrameProject())>0) choices <- dataFrameProject()[,"name"]
+      
+      selectInput(inputId ="select_projet_Patient_analyses" ,
+                  label ="Sélectionner un projet : " ,
+                  choices = choices,
+                  selected =choices[1],
+                  multiple = F)
+    })
+    
+    ## uiselect_list_data_save_Patient_analyses ----
+    dataListDataSave<-reactive({
+      ### file_Catalogue_variables
+      pathUser<-globalInformation$user$path
+      dir_Catalogue<-paste(pathUser,"Catalogue",input$select_catalog_Patient_analyses,sep="/")
+      return(dir(dir_Catalogue))
+      
+    })
+    
+    output$uiselect_list_data_save_Patient_analyses<- renderUI({
+      req(input$select_catalog_Patient_analyses)
+      choices="Pas de requêtes sauvegardé !!"
+      if(length(dataListDataSave())>0) choices <- dataListDataSave()
+      
+      selectInput(inputId ="select_list_data_save_Patient_analyses" ,
+                  label ="Sélectionner une requête sauvegardé : " ,
+                  choices = choices,
+                  selected =choices[1],
+                  multiple = F)
+    })
+    
+    ## uiselect_dataframe_save_Patient_analyses ----
+    dataFrameSave<-reactive({
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = "Récupération des projets", value = 0)
+      progress$inc(1/2)
+      
+      ### file_Catalogue_variables
+      pathUser<-globalInformation$user$path
+      dir_Catalogue<-paste(pathUser,"Catalogue",input$select_catalog_Patient_analyses,sep="/")
+      file_Catalogue_variables<-paste(dir_Catalogue,input$select_list_data_save_Patient_analyses,sep="/")
+      if(!file.exists(file_Catalogue_variables)){
+        progress$inc(1/2)
+        return(list())
+      }
+      
+      
+      
+      liste_var <- readRDS(file =file_Catalogue_variables)
+      if((!is.null(liste_var$CatalogSelected)) && liste_var$CatalogSelected==input$select_catalog_Patient_analyses){
+        progress$inc(1/2)
+        return(liste_var$listSaveDataFrame)
+      }else{
+        progress$inc(1/2)
+        return(list())
+      }
+      
+    })
+    
+    output$uiselect_dataframe_save_Patient_analyses<- renderUI({
+      req(input$select_list_data_save_Patient_analyses)
+      choices="Pas de dataframe !!"
+      if(length(dataFrameSave())>0) choices <- names(dataFrameSave())
+      
+      selectInput(inputId ="select_dataframe_save_Patient_analyses" ,
+                  label ="Sélectionner un data frame sauvegardé : " ,
+                  choices = choices,
+                  selected =choices[1],
+                  multiple = F)
+    })
+    
+    ## data_frame_save_Patient_analyses ----
+    output$data_frame_save_Patient_analyses <- DT::renderDataTable({
+      req(input$select_dataframe_save_Patient_analyses)
+      if(!is.null(dataFrameSave()[[input$select_dataframe_save_Patient_analyses]])){
+        DT::datatable(dataFrameSave()[[input$select_dataframe_save_Patient_analyses]],filter = 'top',selection = 'none')
+      }
+      
+    })
+    
+    ## uiselect_obs_projet_Patient_analyses ----
+    #### recuperation des modules du catalogue selectionner
+    dataFrameObservation<-reactive({
+      req(input$select_projet_Patient_analyses)
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Récupération des observations du projet : ", input$select_projet_Patient_analyses), value = 0)
+      progress$inc(1/2)
+      #data<-findAll(globalInformation$globalDatabase,globalInformation$projectsCollections)
+      dataFrameDefinition<-
+        findQuery(
+          globalInformation$globalDatabase,
+          globalInformation$collections,
+          myQueryConstraintN(
+            list(
+              myConstraintUnique("catalog",input$select_catalog_Patient_analyses),
+              myConstraintUnique("project",input$select_projet_Patient_analyses),
+              myConstraintUnique("type","obs")
+            )
+          )
+        )
+      progress$inc(1/2)
+      return(dataFrameDefinition)
+      
+    })
+    ### on selection une ou plusieurs definition
+    output$uiselect_obs_projet_Patient_analyses<-renderUI({
+      req(input$select_projet_Patient_analyses)
+      choices="Pas d'observation !!"
+      if(nrow(dataFrameObservation())>0){
+        choices = dataFrameObservation()[,"name"]
+      }
+      
+      selectInput(inputId ="select_obs_projet_Patient_analyses" ,
+                  label =paste0('Les observations du projet "',input$select_projet_Patient_analyses,'" sont :') ,
+                  choices = choices,
+                  selected = choices[1],
+                  multiple = F)
+    })
+    
+    
+    ## data_frame_resultat_Patient_analyses ----
+    dataFrameJointure<-eventReactive(input$ActionSave_joint_data_Patient_analyses,{
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Récupération des observations du projet : ", input$select_projet_Patient_analyses), value = 0)
+      progress$inc(1/2)
+      
+      
+      newRequete<-data.frame()
+      newRequete[1,"collection"]<-input$select_obs_projet_Patient_analyses
+      newRequete[1,"requete"]<-'{}'
+      newRequete[1,"nbrElemRequete"]<--1
+      newRequete[1,"database"]<-dataFrameProject()[dataFrameProject()["name"]==input$select_projet_Patient_analyses,"database"]
+      
+      globalDatabase=globalInformation$globalDatabase
+      jointuresCollections=globalInformation$jointuresCollections
+      dataFrameInit=dataFrameSave()[[input$select_dataframe_save_Patient_analyses]]
+      collectiondataFrameInit=input$select_dataframe_save_Patient_analyses
+      dataFrameRequete=newRequete
+      nameSaveDataFrame=input$textinput_joint_data_Patient_analyses
+      
+      dataFrameJointure<-
+        executerQueriesDataFrameProjet(
+          globalDatabase,
+          jointuresCollections,
+          dataFrameInit,
+          collectiondataFrameInit,
+          dataFrameRequete,
+          nameSaveDataFrame)
+      
+      globalInformation$modules$Patient_analyses$datajointure <- dataFrameJointure$listSaveDataFrame[[nameSaveDataFrame]]
+      
+     
+      pathUser<-globalInformation$user$path
+      dir_Patient_analyses<-paste(pathUser,"Patient_analyses",sep="/")
+      if(!dir.exists(dir_Patient_analyses)){
+        dir.create(dir_Patient_analyses,recursive = T)
+      }
+      
+      
+      globalInformation$modules$Patient_analyses$variables<-list(
+        globalInformation$modules$Patient_analyses$datajointure
+      )
+      ### file_Patient_analyses_variables
+      file_Patient_analyses_variables<-paste(dir_Patient_analyses,"list_Patient_analyses_variables.rds",sep="/")
+      saveRDS(globalInformation$modules$Patient_analyses$variables,file =file_Patient_analyses_variables)
+      
+      file_Patient_analyses_datajointure <- paste(dir_Patient_analyses,paste0(input$textinput_joint_data_Patient_analyses,".rds"),sep="/")
+      saveRDS(globalInformation$modules$Patient_analyses$datajointure,file =file_Patient_analyses_datajointure)
+      
+      progress$inc(1/2)
+      return(globalInformation$modules$Patient_analyses$datajointure)
+    })
+    
+    output$data_frame_resultat_Patient_analyses <- DT::renderDataTable({
+      req(input$select_obs_projet_Patient_analyses)
+      DT::datatable(dataFrameJointure(),filter = 'top',selection = 'none')
+    })
+    
+    
+  }#end 
+

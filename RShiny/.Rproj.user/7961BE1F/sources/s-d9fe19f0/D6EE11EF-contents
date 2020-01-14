@@ -1,0 +1,1 @@
+[{"folderName":"LULLMT","ui":"tabItem_LULLMT","server":"serverLULLMT(input, output, session,globalInformation)","menu":"menuItem(text='LULLMT',tabName = 'LULLMT',icon = icon('angle-double-right'))","fileToSource":["serverLULLMT.R","uiLULLMT.R"],"priority":0,"linkModule":"vide","rang":0,"menu_en":"menuItem(text='LULLMT',tabName = 'LULLMT',icon = icon('angle-double-right'))"}]

@@ -1,0 +1,10 @@
+[
+  {
+    "name":"Requetes_et_visualisation/Les_Genes",
+    "ui":"tabItem_Les_Genes",
+    "server":"serverLes_Genes(input, output, session,globalInformation)",
+    
+    
+    "fileToSource":["serverLes_Genes.R","uiLes_Genes.R"]
+  }
+]

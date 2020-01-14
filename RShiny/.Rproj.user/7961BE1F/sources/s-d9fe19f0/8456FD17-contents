@@ -1,0 +1,626 @@
+
+#db$insert(paste('{"MGS" : "ABCZ" , "GeneIDs" : [28,3,7,12]}'))
+# on ajout les données
+# on update la colonne pour rajouter les GenesIDs
+#MGSid<-paste0('{ "MGS": "',mgs,'" }')
+#MGS_GeneIDs<-paste0('{ "$push": { "GeneIDs": {"$each":',tabIDs,' } } }')
+# db$update(MGSid,MGS_GeneIDs)
+
+
+
+
+
+# comment recuperer les GenesIDs d'un gene particulier
+# query<-myQueryChaine(colonne ='MGS' ,val ='CAG00001' )
+# result<-findQuery(databaseName ='iogold' ,collectionName ='CAG' ,myQueryJson = query)
+# listGeneIDs<-unlist(result[1,2], use.names=FALSE) # ou r<-as.vector(unlist(e))
+# 
+
+
+
+# # function ton convert factor to numeric
+# as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
+# b<-a %>% filter(!is.na(a[colnames(a)[2]] ))
+
+
+
+typeColumnCollections<-
+  function(){
+    #### on crée un collection qui contiendra les type des differentes colonnes des définitions 
+    ### cele permetre de mieux gére les interface des requêtes
+    globalDatabase<-'iogold'
+    dataFrameDefinition<-findQuery(globalDatabase,'collections',myQueryChaine("type","def"))
+    dbc<-""
+    db<-loadDataBase(globalDatabase,"typeColumn")
+    db$drop()
+    
+    for(i in 1:nrow(dataFrameDefinition)){
+      collectionName<-dataFrameDefinition[i,"name"]
+      
+      mydataCollection<-findLimit(globalDatabase,collectionName,20)
+      listeColumn<-colnames(mydataCollection)
+      for(j in 1:length(listeColumn)){
+        columnName<-listeColumn[j]
+        typeColumn<-class(mydataCollection[,columnName])
+        min<-max<-0
+        if(typeColumn %in% c("character","list")){
+          min<-max<-0
+        }else{
+          
+          dbc<-loadDataBase(globalDatabase,collectionName)
+          mm<-dbc$aggregate(paste0('[{ "$group" : { "_id": null, "max": { "$max" : "',paste0("$",columnName),'" }, "min": { "$min" : "',paste0("$",columnName),'" }}}]'))
+          
+          min<-mm$min
+          max<-mm$max
+          
+        }
+          myqueryInsert<-
+          paste0('{"collection":"',collectionName,
+                 '","column":"',columnName,
+                 '","type":"',typeColumn,
+                 '","min":',min,
+                 ',"max":',max,
+                 ' }')
+          db$insert(myqueryInsert)
+          cat("\n>> Insert ok : ",myqueryInsert)
+      }
+      
+    }
+    rm(dbc)
+    gc()
+    rm(db)
+    gc()
+  }
+# 
+# d<-Sys.time()
+# typeColumnCollections() # Time difference of 1.569458 mins
+# Sys.time()-d
+
+testupdate<-
+  function(){
+    cles<-'{"MGS": { "$exists":  true}}'
+    
+    
+    
+    query<-paste0('{}')
+    updateVal<-'{"$unset":{"Projects": ""}}'
+    db$update(query,updateVal,multiple = TRUE)
+    
+    
+    
+    # update pour rajouter un element à une liste
+    db<-loadDataBase('iogold','iogold_user')
+    
+    name<-"Klemah"
+    val<-myQuerySetChaine("email","Klemah@g.c")
+    query<-paste0('{ "Name": "',name,'" }')
+    myUpdateQueryMongoSimple('iogold','iogold_user',query,val)
+    
+    #updateVal<-paste0('{ "$push": { "email": "',val,'" } }')
+    #db$update(query,updateVal)
+    
+    
+    
+    databaseName<-'iogold'
+    collectionName<-'iogold_user'
+    
+    
+    infoUser<-findQuery(databaseName,collectionName,myQueryUnique("Name","root"))
+    #infoUser<-findQuery(databaseName,collectionName,'{"Name":"Try","Password":"Try"}')
+    projectUser<-infoUser$Projects[1]
+    vectorProjectUser<-unlist(projectUser, use.names=FALSE)
+    
+    db<-loadDataBase(databaseName,'iogold_projet')
+    query<-paste0('{"Name":"testPROJECT"}')
+    updateVal<-'{"$set":{"dataBase": "iogold_test"}}'
+    db$update(query,updateVal)
+    
+    
+    z<-findQuery(databaseName,'iogold_projet',myQueryUniqueIN("dataBase",vectorProjectUser))
+    
+    
+    
+    
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 
+# globalDatabase<-'iogold'
+# projectDatabase<-'iogold_microbaria'
+# projectName<-"myMicrobaria"
+# pathGeneAbundance<-"/data/projects/iogold/data/microbiome/2.json.tables.Microbaria/GeneAbundance_With_row/"
+# pathMGSabundance<-"/data/projects/iogold/data/microbiome/2.json.tables.Microbaria/"
+# pathSampleMetadata<-"/data/projects/iogold/data/microbiome/2.json.tables.Microbaria/"
+
+# GenerateNewProjectAdmin(globalDatabase,
+#                         projectDatabase,
+#                         projectName,
+#                         pathGeneAbundance,
+#                         pathMGSabundance,
+#                         pathSampleMetadata)
+
+
+# myUpdateQueryMongoSimple(
+#   'iogold',
+#   'iogold_user',
+#   myQueryUniqueIN('email',list('a@g.c','b@g.c')),
+#   myQueryPushChaine('Projects',list('testReunion','testsoutenance'))
+# )
+# databaseName ='iogold_microbaria'
+# GenerateMyData(databaseName,'test','test.json',
+#                "/home/ltekam/GIT_LAB_Fin/iogoldg/RShiny/GenerateData/Generate_New_iogold_data/")
+# 
+# db<-loadDataBase(databaseName,'tests')
+# db$count()
+# db$drop()
+
+
+########################################################################"
+
+testBarPlot<-
+  function(){
+    #méthode 1
+    MGS_name<-"CAG00008"
+    CollectionGeneAbundance<-"myMicrobariaGeneAbundance"
+    globalDatabase ='iogold'
+    projectDatabase ='iogold_microbaria'
+    s<-Sys.time()
+    GeneAbundance<- getGeneAbundance(globalDatabase,projectDatabase,collectionICGgenes="ICGgenes",collectionCAG="CAG",MGS_name,CollectionGeneAbundance)
+    Sys.time()-s
+    
+    #on génére le barcode
+    s<-Sys.time()
+    plotBarcode.ggplot(GeneAbundance)
+    Sys.time()-s
+    
+    
+    MGS_name<-"CAG00008"
+    #méthode 2
+    s<-Sys.time()
+    GeneAbundance<-  findAll(globalDatabase,MGS_name)
+    Sys.time()-s
+    
+    s<-Sys.time()
+    plotBarcode.ggplot(GeneAbundance)
+    Sys.time()-s
+    
+    #méthode 3
+    MGS_name<-"CAG00008"
+    CollectionGeneAbundance<-"myMicrobariaGeneAbundanceMGS"
+    globalDatabase ='iogold'
+    projectDatabase ='iogold_microbaria'
+    s<-Sys.time()
+    GeneAbundance<- getGeneAbundance(globalDatabase,projectDatabase,collectionICGgenes="ICGgenes",collectionCAG="CAG",MGS_name,CollectionGeneAbundance)
+    Sys.time()-s
+    
+    s<-Sys.time()
+    plotBarcode.ggplot(GeneAbundance)
+    Sys.time()-s
+    
+    
+    #méthode 4
+    MGS_name<-"CAG00008"
+    CollectionGeneAbundance<-"myMicrobariaGeneAbundanceMGS"
+    globalDatabase ='iogold'
+    projectDatabase ='iogold_microbaria'
+    s<-Sys.time()
+    GeneAbundance<- getGeneAbundance(globalDatabase,projectDatabase,collectionICGgenes="ICGgenesMGS",collectionCAG="CAG",MGS_name,CollectionGeneAbundance)
+    Sys.time()-s
+    
+  }
+
+testRam<-
+  function(){
+    databaseName<-'iogold'
+    s<-Sys.time()
+    x<-findLimit(databaseName,'MicrobariaGeneAbundance',100000)
+    Sys.time()-s
+    return(x)
+  }
+
+# #a<-read_json(path='~/GIT_LAB_test/iogoldg/RShiny/MongoDB/collections.json',simplifyVector = TRUE)
+# dat1<-findLimit('iogold','obs_mgs_cat_hs9.9_v1_Microbaria',4)
+# dat<-dat1[1,]
+# dat$group <- row.names(dat)
+# dat.m <- melt(dat, id.vars = "group")
+# #ggplot(dat.m, aes(group, value)) + geom_boxplot()
+# myBoxPlot(dat.m, "group", "value")
+# 
+# boxplot(t(dat))
+# 
+# dat<-findLimit('iogold','obs_mgs_cat_hs9.9_v1_Microbaria',4)
+
+dat<-findQuery('iogold_microbaria','obs_mgs_cat_hs9.9_v1_myMicrobaria',myQueryUnique("_row","CAG00004"))
+dat$group <- row.names(dat)
+dat.m <- melt(dat, id.vars = "group")
+#ggplot(dat.m, aes(group, value)) + geom_boxplot()
+dat.m2.plot <- myBoxPlot(dat.m, "group", "value",TRUE)
+dat.m2.plot
+
+
+############################################################################################################
+# x<-findLimit('iogold_microbaria','obs_samplemetadata_v1_Microbaria',8)
+# > x
+# data frame with 0 columns and 0 rows
+# > x<-findLimit('iogold_microbaria','obs_samplemetadata_v1_myMicrobaria',8)
+# > x
+# down_3M_una down_5M_una down_10M_una down_11M_una down_15M_una down_20M_una down_25M_una down_30M_una down_35M_una down_40M_una down_45M_una down_50M_una
+# MB01_3      291234      362828       481312       499527       563891       624283       673349       715178       752308       785125       814836       840853
+# MB01_1      353382      433508       558414       577088       640050       701438       751743       794592       832080       867940       900477       929218
+# MB01_2      284942      350373       453615       469188       523034       576609       621256       659797       693610       724339       751976       775993
+# MB02_2      359720      449838       593066       614992       688938       761863       821636       872529       917019       957054       993025      1026059
+# MB02_1      385463      478627       624960       646922       721694       795121       854952       906339       950701       990230      1025908      1059059
+# MB04_2      259214      324241       431320       447852       505755       560134       604389       642420       676282       706198       733216       756636
+# MB04_3      411864      516604       686256       712419       801051       890409       964850      1022735      1073679      1118756      1159851      1196844
+# MB04_1      388247      480542       625153       646766       720169       792212       850883       900929       944410       983245      1018351      1050584
+# Patient Time clin_surg_type
+# MB01_3 microbaria01   M3         bypass
+# MB01_1 microbaria01   T0         bypass
+# MB01_2 microbaria01   M1         bypass
+# MB02_2 microbaria02   M1         bypass
+# MB02_1 microbaria02   T0         bypass
+# MB04_2 microbaria04   M1         bypass
+# MB04_3 microbaria04   M3         bypass
+# MB04_1 microbaria04   T0         bypass
+# > table(x$clin_surg_type)
+# 
+# bypass 
+# 8 
+# > x<-findAll('iogold_microbaria','obs_samplemetadata_v1_myMicrobaria')
+# > table(x$clin_surg_type)
+# 
+# band bypass 
+# 58    108 
+# > table(x$Time)
+# 
+# M1 M12  M3  T0 
+# 38  27  36  72 
+# > runApp('ShinyDashboard')
+# 
+# Listening on http://127.0.0.1:5319
+# 
+# 
+# > mgs<-findQuery('iogold_microbaria','obs_mgs_cat_hs9.9_v1_myMicrobaria',myQueryUnique("_row","CAG00008"))
+# > mgs
+# MB16_3     MB50_1 MB08_1     MB37_3     MB29_1     MB12_1     MB54_3 MB33_1     MB59_2     MB01_2     MB23_1     MB44_3     MB02_1     MB43_2
+# CAG00008 2.5506e-07 1.4644e-08      0 1.4792e-06 9.7458e-08 2.0929e-08 9.6302e-08      0 2.1108e-07 1.7455e-06 3.4736e-07 8.5535e-09 8.0694e-09 6.1464e-06
+# MB26_4     MB61_1     MB39_1     MB27_3     MB07_4 MB62_2     MB18_1     MB40_1     MB07_3     MB41_1     MB26_3     MB60_1     MB42_2    MB27_4
+# CAG00008 4.5606e-08 3.0282e-08 2.5334e-08 1.1498e-07 1.5631e-07      0 1.6149e-07 8.2499e-09 5.8504e-07 2.0808e-07 5.5422e-07 3.2689e-08 8.1508e-08 1.093e-07
+# MB44_4 MB21_2     MB22_1     MB32_1     MB10_2     MB48_2     MB55_3     MB54_4    MB28_1 MB70_1     MB52_2     MB37_4     MB51_1     MB16_4     MB29_2
+# CAG00008      0      0 3.9966e-07 1.9152e-08 7.1372e-06 2.6368e-07 6.6011e-08 9.3118e-08 3.835e-08      0 2.0154e-07 2.4053e-07 9.6429e-09 5.5433e-07 4.2207e-07
+# MB53_1    MB15_3     MB08_2     MB35_4     MB50_2     MB33_2 MB12_2     MB30_1     MB68_1     MB02_2     MB78_1     MB20_1     MB46_4     MB01_1
+# CAG00008 6.076e-08 8.308e-07 8.3257e-07 2.4979e-07 2.3378e-08 1.4159e-08      0 1.0983e-07 1.4916e-08 8.1404e-07 2.1006e-07 3.0983e-08 2.7211e-08 2.8007e-07
+# MB59_1     MB47_3     MB18_2     MB62_1    MB39_2     MB61_2     MB04_4     MB05_3     MB43_1 MB42_1     MB04_3     MB60_2     MB63_1     MB25_3
+# CAG00008 2.5414e-08 1.2497e-06 1.5702e-06 1.1935e-08 1.905e-08 2.3056e-06 1.3707e-07 4.4094e-07 1.9597e-08      0 3.8652e-07 3.1763e-06 3.0893e-08 1.4505e-08
+# MB41_2     MB46_3 MB58_1     MB22_2     MB47_4     MB79_1     MB21_1     MB31_1     MB69_1 MB48_1     MB10_1     MB32_2     MB35_3 MB51_2     MB14_3
+# CAG00008      0 1.5358e-07      0 3.4088e-06 9.9424e-08 6.1597e-08 9.3295e-08 1.7516e-08 2.4231e-06      0 2.0565e-08 2.1298e-07 1.5472e-06      0 1.4442e-07
+# MB52_1     MB15_4     MB10_3     MB48_3     MB56_1 MB80_1     MB30_4     MB55_2 MB14_1     MB52_3     MB35_1     MB17_2    MB25_1     MB07_2
+# CAG00008 2.1274e-08 5.1211e-07 3.7566e-06 1.3596e-07 6.6737e-09      0 7.4779e-08 1.6521e-08      0 1.0888e-07 2.1109e-07 1.1331e-07 1.121e-08 2.0912e-06
+# MB42_3     MB04_1     MB26_2     MB43_4     MB67_1     MB21_3     MB46_1     MB59_3     MB01_3 MB47_1 MB44_2     MB66_1     MB42_4     MB05_1
+# CAG00008 1.5302e-08 2.6546e-08 3.3516e-07 3.0529e-07 5.1217e-06 3.1536e-08 5.1238e-08 9.6753e-07 4.3466e-08      0      0 1.0808e-07 4.2447e-08 2.5095e-08
+# MB43_3    MB16_2 MB34_1     MB37_2     MB52_4     MB15_1 MB54_2 MB81_1    MB10_4     MB48_4     MB57_1 MB55_1     MB13_3 MB12_4     MB74_1
+# CAG00008 4.4587e-06 1.173e-06      0 1.7715e-06 2.7243e-08 1.6607e-06      0      0 1.037e-07 2.6287e-07 1.4956e-08      0 8.2129e-08      0 1.9148e-07
+# MB32_3    MB33_4     MB51_3     MB17_1 MB50_4    MB35_2     MB29_4     MB26_1     MB60_3     MB39_4     MB04_2     MB07_1 MB41_3 MB25_2     MB18_4
+# CAG00008 1.7492e-08 5.477e-08 2.0844e-08 9.5104e-09      0 4.256e-07 5.2146e-07 1.3918e-07 2.5128e-06 4.3073e-08 5.3844e-07 1.2615e-07      0      0 5.4426e-07
+# MB22_3 MB64_1    MB46_2 MB45_1     MB44_1     MB47_2     MB22_4 MB65_1 MB06_1     MB05_2     MB39_3     MB61_3     MB27_1     MB37_1     MB29_3
+# CAG00008 3.9903e-06      0 5.925e-07      0 8.4241e-09 1.8815e-06 3.1705e-06      0      0 9.6442e-07 5.1027e-08 5.6505e-07 6.0608e-08 2.7299e-07 1.6397e-07
+# MB51_4     MB16_1     MB50_3     MB32_4     MB33_3     MB12_3     MB54_1
+# CAG00008 3.7804e-08 6.4987e-06 1.6383e-08 1.6448e-08 4.3903e-08 7.9948e-09 7.4289e-08
+# > dat<-findQuery('iogold_microbaria','obs_mgs_cat_hs9.9_v1_myMicrobaria',myQueryUnique("_row","CAG00008"))
+# > dat$group <- row.names(dat)
+# > dat.m <- melt(dat, id.vars = "group")
+# > #ggplot(dat.m, aes(group, value)) + geom_boxplot()
+#   > myBoxPlot(dat.m, "group", "value")
+# > head(dat.m)
+# group variable      value
+# 1 CAG00008   MB16_3 2.5506e-07
+# 2 CAG00008   MB50_1 1.4644e-08
+# 3 CAG00008   MB08_1 0.0000e+00
+# 4 CAG00008   MB37_3 1.4792e-06
+# 5 CAG00008   MB29_1 9.7458e-08
+# 6 CAG00008   MB12_1 2.0929e-08
+# > head(x)
+# down_3M_una down_5M_una down_10M_una down_11M_una down_15M_una down_20M_una down_25M_una down_30M_una down_35M_una down_40M_una down_45M_una down_50M_una
+# MB01_3      291234      362828       481312       499527       563891       624283       673349       715178       752308       785125       814836       840853
+# MB01_1      353382      433508       558414       577088       640050       701438       751743       794592       832080       867940       900477       929218
+# MB01_2      284942      350373       453615       469188       523034       576609       621256       659797       693610       724339       751976       775993
+# MB02_2      359720      449838       593066       614992       688938       761863       821636       872529       917019       957054       993025      1026059
+# MB02_1      385463      478627       624960       646922       721694       795121       854952       906339       950701       990230      1025908      1059059
+# MB04_2      259214      324241       431320       447852       505755       560134       604389       642420       676282       706198       733216       756636
+# Patient Time clin_surg_type
+# MB01_3 microbaria01   M3         bypass
+# MB01_1 microbaria01   T0         bypass
+# MB01_2 microbaria01   M1         bypass
+# MB02_2 microbaria02   M1         bypass
+# MB02_1 microbaria02   T0         bypass
+# MB04_2 microbaria04   M1         bypass
+# > dat.m2 <- merge(dat.m, x[,c("Time","clin_surg_type","Patient")], by.x = "variable", by.y = 0)
+# > head(dat.m2)
+# variable    group      value down_3M_una down_5M_una down_10M_una down_11M_una down_15M_una down_20M_una down_25M_una down_30M_una down_35M_una down_40M_una
+# 1   MB01_1 CAG00008 2.8007e-07      353382      433508       558414       577088       640050       701438       751743       794592       832080       867940
+# 2   MB01_2 CAG00008 1.7455e-06      284942      350373       453615       469188       523034       576609       621256       659797       693610       724339
+# 3   MB01_3 CAG00008 4.3466e-08      291234      362828       481312       499527       563891       624283       673349       715178       752308       785125
+# 4   MB02_1 CAG00008 8.0694e-09      385463      478627       624960       646922       721694       795121       854952       906339       950701       990230
+# 5   MB02_2 CAG00008 8.1404e-07      359720      449838       593066       614992       688938       761863       821636       872529       917019       957054
+# 6   MB04_1 CAG00008 2.6546e-08      388247      480542       625153       646766       720169       792212       850883       900929       944410       983245
+# down_45M_una down_50M_una      Patient Time clin_surg_type
+# 1       900477       929218 microbaria01   T0         bypass
+# 2       751976       775993 microbaria01   M1         bypass
+# 3       814836       840853 microbaria01   M3         bypass
+# 4      1025908      1059059 microbaria02   T0         bypass
+# 5       993025      1026059 microbaria02   M1         bypass
+# 6      1018351      1050584 microbaria04   T0         bypass
+# > #ggplot(dat.m, aes(group, value)) + geom_boxplot()
+#   > dat.m2.plot <- myBoxPlot(dat.m2, "group", "value","Time")
+# > dat.m2.plot
+# > dat.m2.plot + facet_grid(.~time)
+# Error: At least one layer must contain all faceting variables: `time`.
+# * Plot is missing `time`
+# * Layer 1 is missing `time`
+# > dat.m2.plot + facet_grid(.~dat.m2["Time"][,1])
+# > dat.m2.plot + facet_grid(.~clin_surg_type)
+# > dat.m2.plot + facet_grid(Time~clin_surg_type)
+# > dat.m2.plot + facet_grid(clin_surg_type~Time)
+# > runApp('ShinyDashboard')
+# 
+# Listening on http://127.0.0.1:5319
+# 
+# 
+# > head(dat.m2)
+# variable    group      value down_3M_una down_5M_una down_10M_una down_11M_una down_15M_una down_20M_una down_25M_una down_30M_una down_35M_una down_40M_una
+# 1   MB01_1 CAG00008 2.8007e-07      353382      433508       558414       577088       640050       701438       751743       794592       832080       867940
+# 2   MB01_2 CAG00008 1.7455e-06      284942      350373       453615       469188       523034       576609       621256       659797       693610       724339
+# 3   MB01_3 CAG00008 4.3466e-08      291234      362828       481312       499527       563891       624283       673349       715178       752308       785125
+# 4   MB02_1 CAG00008 8.0694e-09      385463      478627       624960       646922       721694       795121       854952       906339       950701       990230
+# 5   MB02_2 CAG00008 8.1404e-07      359720      449838       593066       614992       688938       761863       821636       872529       917019       957054
+# 6   MB04_1 CAG00008 2.6546e-08      388247      480542       625153       646766       720169       792212       850883       900929       944410       983245
+# down_45M_una down_50M_una      Patient Time clin_surg_type
+# 1       900477       929218 microbaria01   T0         bypass
+# 2       751976       775993 microbaria01   M1         bypass
+# 3       814836       840853 microbaria01   M3         bypass
+# 4      1025908      1059059 microbaria02   T0         bypass
+# 5       993025      1026059 microbaria02   M1         bypass
+# 6      1018351      1050584 microbaria04   T0         bypass
+# > ggplot(dat.m2, aes(x=down_11M_una, y=value)) + geom_boxplot()
+# Warning message:
+#   Continuous x aesthetic -- did you forget aes(group=...)? 
+#   > dat.m2$down_11M_una
+# [1]  577088  469188  499527  646922  614992  646766  447852  712419  850405  754576  744441  210238  441276  479652  491004  449520  541507  816722  622449
+# [20]  646393  398714  506428  647271  783720  900272  746329  931210  573773  829326  606159  559314  557764  654904  342720  354487  531762  592188  505461
+# [39] 1001817  417331  290487  505407  629433 1049339  563681  581580  381655  347536  420447  610862  402552  586490  580224  650055  560327  524935  550910
+# [58]  893215  548997  660781  748333  621546  568879  557135  511665  594067  478660  567836  796279  681118  685735  725885  877067  844067  829879  804948
+# [77]  935132  609548  309001  506798  462759  637914  548415  724415  592673  676978  749330  795607  655242  717600  896979  652305  838045  958290  771813
+# [96]  618684  744275  815516  195949  371022  466951  622413  910630  896520  913181  861562  923847  676138  679806  854290  673963  775220  726536  696743
+# [115]  692076  482270  539339  586773  755218  856820  840932  836186  887407  504823  486881  594230  635690  666072  665281  732732  743121  776907  499078
+# [134]  448041  571146  668943  466164  605502  759882  772803  645034  613467  474011  579552  638290  697106  357508  399203  625345  505737  524892  770696
+# [153]  725995  640882  387118 1017439  477573  344724  469055  582394  410625  448661  534144  704800  954960  820170
+# > class(dat.m2$down_11M_una)
+# [1] "integer"
+# > ggplot(dat.m2, aes(x=down_11M_una, y=value)) + geom_point()
+# > ggplot(dat.m2, aes(x=as.numeric(down_11M_una), y=value)) + geom_boxplot()
+# Warning message:
+#   Continuous x aesthetic -- did you forget aes(group=...)? 
+#   > 
+#   > 
+#   > 
+#   > 
+#   > 
+#   > 
+#   > #ggplot(dat.m, aes(group, value)) + geom_boxplot()
+#   > dat.m2.plot <- myBoxPlot(dat.m2, "Time", "value")
+# > dat.m2.plot
+# > dat.m2.plot + facet_grid(.~clin_surg_type)
+# > dat.m2.plot + facet_grid(Patient~clin_surg_type)
+# > dat.m2.plot + facet_grid(.~clin_surg_type)
+# > dat.m2.plot + facet_grid(clin_surg_type~.)
+# > dat.m2.plot + facet_wrap(~clin_surg_type)
+# > dat.m2.plot + facet_wrap(~clin_surg_type, ncol=4)
+# > dat.m2.plot + facet_wrap(clin_surg_type~, ncol=4)
+# Error: unexpected ',' in "dat.m2.plot + facet_wrap(clin_surg_type~,"
+# > dat.m2.plot + facet_wrap(~clin_surg_type, ncol=2)
+# > dat.m2.plot + facet_wrap(Time~clin_surg_type, ncol=2)
+# > runApp('ShinyDashboard')
+m<-merge(cag,proj)
+
+cag.melt <- 
+  
+  a<-plotBarcode.ggplot(cag,proj,list("Time"),T)
+b<-plotBarcode.ggplot(proj[1:nrow(cag),1:ncol(cag)])
+grid.arrange(a,b, ncol=2)
+
+c<-b+facet_grid(.~proj[strat1][1:nrow(mydata),1]) 
+
+cag<-findAll('iogold','CAG00004')
+myBoxPlot()
+# ##################################################################################################
+
+
+cag<-findAll('iogold','CAG00004')
+proj<-findAll('iogold','obs_samplemetadata_v1_Microbaria')
+
+myBarcodePlot1(cag,proj,'Time')
+
+
+data<-cag
+require(reshape2)
+cols <- c("white", "deepskyblue", "blue", "green3", "yellow", "orange", "red", "orangered2", "darkred")
+cols.val <- c(0, 1e-07, 4e-07, 1.6e-06, 6.4e-06, 2.56e-05, 0.0001024, 0.0004096, 0.0016384)
+data.melt <- as.data.frame(data)
+data.melt$gene <- as.character(rownames(data.melt))
+data.melt <- melt(data.melt)
+data.melt$gene <- factor(data.melt$gene, levels = as.character(rownames(data)))
+data.melt$variable <- factor(data.melt$variable, levels = colnames(data))
+
+m<-merge(data.melt,proj,by.x = "variable", by.y = 0)
+
+plot<-ggplot(m, aes(x=variable, y=gene, fill=value)) + 
+  geom_tile() + 
+  scale_fill_gradientn(colours = cols, values = cols.val, rescaler = function(x, ...) x) + 
+  xlab("sample") + 
+  theme_bw() + 
+  theme(axis.text = element_blank(),
+        legend.position = "none",
+        axis.ticks = element_blank())
+strat1<-"Time"
+f0<-plot+facet_grid(.~m[strat1][,1]) 
+f<-plot+facet_grid(.~m[strat1][,1],scales = "free") 
+fx<-plot+facet_grid(.~m[strat1][,1],scales = "free_x")
+fy<-plot+facet_grid(.~m[strat1][,1],scales = "free_y")
+
+
+all<-grid.arrange(f0,f,fx,fy, ncol=4)
+
+
+
+
+
+addNewUser('iogold',
+           'users',
+           'ludo',
+           'ludovik',
+           'tekam',
+           hashpw('ludo', gensalt(16)),
+           'ludo@gmail.com',
+           'administrateur')
+
+
+
+GenerateMyDataMultiAdmin('iogold','def_pathway_definitions_KEGGdb_5_19','pathway_definitions.json','/data/projects/iogold/data/microbiome/0.json.tables.ICGgenesMGS.MongoDB/')
+
+
+
+
+databaseName<-'iogold'
+collectionName<-'CAG00004'
+
+ RenameCagField('iogold','obs_mgs_cat_hs9.9_v1_MicrobariaCopy16')
+# RenameCagField('iogold','CAG00012')
+listeCag<-c("CAG00011","CAG00014")
+
+listeDatabaseName<-c("iogold","iogold")
+listeCollection<-c("obs_mgs_cat_hs9.9_v1_MicrobariaCopy","obs_mgs_cat_hs9.9_v1_MicrobariaCopy16")
+concatCag<-
+  function(listeDatabaseName,listeCollection){
+    allCollection<-data.frame()
+    nd<-length(listeDatabaseName)
+    nc<-length(listeCollection)
+    if(nc>0 && nd>0){
+      if(nc==nd){
+        allCollection<-findAll(listeDatabaseName[1],listeCollection[1])
+        cat(listeCollection[1])
+      }else{
+        return(F)
+      }
+      
+    }else{
+      return(F)
+    }
+    
+    for(i in 1:nc){
+      if(i>1){
+        collectionName<-listeCollection[i]
+        databaseName<-listeDatabaseName[i]
+        
+        data<-findLimit(databaseName,collectionName,2)
+        communColonne<-intersect(colnames(allCollection),colnames(data))
+        communligne<-intersect(row.names(allCollection),row.names(data))
+        if(length(communColonne)==0 && length(communligne)==length(row.names(data))){
+          data<-findAll(databaseName,collectionName)
+          cat(collectionName)
+          allCollection<-merge(allCollection,data,by.x=0,by.y=0)
+          cat("merge")
+        }else{
+          # deux abondance de MGS ne peuvent pas avoir des colonnes avec des nom identique
+          # mais elles doivent avoire le même nombre de lignes
+          return(data.frame())
+          
+        }
+      }#end if
+      
+    }#end for
+    return(allCollection)
+    
+  }
+# 
+# mgs<-findAll('iogold',"obs_mgs_cat_hs9.9_v1_MicrobariaCopy")
+# proj<-findAll('iogold',"obs_samplemetadata_v1_MicrobariaCopy")
+#   
+
+c('CAG01540','CAG01551','CAG00015')
+
+
+id<-c(6788400,4919310)
+id2<-c(5997122, 4821793, 7539943 ,4919310, 5117317, 4919310, 7917177 ,4551769, 4258453, 5323124)
+z<-unlist(mdf[2,2])
+res<- id2 %in% z
+table(res)
+
+d<-Sys.time()
+mdf<-findQuery('iogold',"def_cag_cat_hs9.9_v1",myQueryUniqueIN_integer("GeneIDs",id)) #Time difference of 1.382463 secs #Time difference of 0.8600624 secs
+Sys.time()-d
+
+as.list(strsplit(x,",")[[1]])
+
+w<-'~/GIT_LAB_test/iogoldg/RShiny/MongoDB/'
+
+
+
+# z$GeneIDs$CAG1[1]
+# [1] 5997122
+# > names(z$GeneIDs) = z$MGS
+# > runApp('ShinyDashboard')
+# 
+# > class(e)
+# [1] "integer"
+# > e[1]
+# [1] 3516801
+# > z$GeneIDs[[1]][1]
+# [1] 5997122
+# > z$GeneIDs[[2]][1]
+# [1] 3516801
+# > mygenes = c(16678, 6090164)
+# > lapply(z$GeneIDs, function(x) length(intersect(x, mygenes)))
+# [[1]]
+# [1] 0
+# 
+# [[2]]
+# [1] 2
+# 
+# > sapply(z$GeneIDs, function(x) length(intersect(x, mygenes)))
+# [1] 0 2
+# > names(z$GeneIDs) = c("CAG1", "CAG2")
+# > sapply(z$GeneIDs, function(x) length(intersect(x, mygenes)))
+# CAG1 CAG2 
+# 0    2 
+# > z$GeneIDs$CAG1
+
+ld<-readRDS(file="~/GIT_LAB_test/iogoldg/RShiny/user_data/root@g.c/current_session/listSaveDataFrame.rds")
+newRequete<-data.frame()
+    newRequete[1,"collection"]<-"obs_genes_cat_hs9.9_v1_Microbaria"
+    newRequete[1,"requete"]<-'{}'
+    newRequete[1,"nbrElemRequete"]<--1
+    newRequete[1,"database"]<-"iogold_microbaria"
+    
+
+df<-
+executerQueriesDataFrameProjet(
+globalDatabase="iogold",
+jointuresCollections="jointures",
+dataFrameInit=ld$QuickSave,
+collectiondataFrameInit="def_genes_cat_hs9.9_v1",
+dataFrameRequete=newRequete,
+nameSaveDataFrame="test")
+

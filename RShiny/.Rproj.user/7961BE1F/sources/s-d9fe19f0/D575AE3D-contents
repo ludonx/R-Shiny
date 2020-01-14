@@ -1,0 +1,10 @@
+[
+  {
+    "name":"Gestion_de_l_application/Visualisation_des_collections",
+    "ui":"tabItem_Visualisation_des_collections",
+    "server":"serverVisualisation_des_collections(input, output, session,globalInformation)",
+    
+    
+    "fileToSource":["serverVisualisation_des_collections.R","uiVisualisation_des_collections.R"]
+  }
+]

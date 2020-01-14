@@ -1,0 +1,46 @@
+[
+  
+  {
+    "default_user_email":"root@g.c",
+    "default_user_pwd":"root",
+    "server_id" : "portal",
+    "workDirectory":"/tmp/user_data",
+    "databases":["iogold","iogold_microbaria"],
+    "pwd":"rT@g4CkYkaTRS=%8",
+    "host" : "gpu1.integromics.fr:27017",
+    "username" : "shiny", 
+    "globalDatabase" : "iogold",
+    "usersCollection":"users",
+    "usersCollectionDelete":"usersDelete",
+    "projectsCollections" : "projects",
+    "mainCollections" : "collections",
+    "catalogCollections" : "catalog",
+    "jointuresCollections" : "jointures",
+    "moduleCoverageCollections":"module_coverage_KEGGdb_5_19",
+    "typeColumnCollections":"typeColumn",
+    "pathToModule":"./modules/",
+    "activated":0
+  },
+  {
+    "default_user_email":"root@g.c",
+    "default_user_pwd":"root",
+    "server_id" : "local",
+    "workDirectory":"/home/ltekam/GIT_LAB_test/iogoldg/RShiny/user_data",
+    "databases":["iogold","iogold_microbaria"],
+    "pwd":"rT@g4CkYkaTRS=%8",
+    "host" : "gpu1.integromics.fr:27017",
+    "username" : "shiny", 
+    "globalDatabase" : "iogold",
+    "usersCollection":"users",
+    "usersCollectionDelete":"usersDelete",
+    "projectsCollections" : "projects",
+    "mainCollections" : "collections",
+    "catalogCollections" : "catalog",
+    "jointuresCollections" : "jointures",
+    "moduleCoverageCollections":"module_coverage_KEGGdb_5_19",
+    "typeColumnCollections":"typeColumn",
+    "pathToModule":"./modules/",
+    "activated":1
+  }
+  
+]

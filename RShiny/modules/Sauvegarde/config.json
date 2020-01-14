@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Sauvegarde",
+    "ui":"tabItem_Sauvegarde",
+    "server":"serverSauvegarde(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Sauvegarde',tabName = 'Sauvegarde',icon = icon('save'))",
+    "fileToSource":["serverSauvegarde.R","uiSauvegarde.R"],
+    "priority":0,
+    "linkModule":null,
+    "rang":99,
+    "menu_en":"menuItem(text='Save',tabName = 'Sauvegarde',icon = icon('save'))"
+  }
+]

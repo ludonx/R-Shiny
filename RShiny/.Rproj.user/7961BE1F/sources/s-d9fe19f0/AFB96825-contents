@@ -1,0 +1,176 @@
+serverMes_requetes<-
+  function(input, output, session,globalInformation){
+    ####### data frame dataFrameMesRequetes
+    output$data_frame_mes_requetes_Mes_requetes<-DT::renderDataTable({
+      globalInformation$user$dataFrameMesRequetes_distinct<-globalInformation$modules$Catalogue$dataFrameMesRequetes
+      if(nrow(globalInformation$user$dataFrameMesRequetes_distinct)>0){
+        # colNotTodisplay<-c("collection","requete","nbrElemRequete")
+        # colTodisplay<-setdiff(colnames(globalInformation$user$dataFrameMesRequetes),colNotTodisplay)
+        # 
+        # #as.vector(unlist(strsplit(str,",")),mode="list")
+        # 
+        # rowTodisplay<-(globalInformation$user$dataFrameMesRequetes["user"]==globalInformation$user$email)
+        # #globalInformation$user$dataFrameMesRequetes_distinct<-distinct(globalInformation$user$dataFrameMesRequetes[rowTodisplay,colTodisplay])
+        # 
+        # mySelectDf<-globalInformation$user$dataFrameMesRequetes_distinct[rowTodisplay,colTodisplay]
+        # DT::datatable(mySelectDf,filter = 'top',selection = 'single',editable = TRUE)
+        # 
+        colNotTodisplay<-c("collection","requete","nbrElemRequete")
+        colTodisplay<-setdiff(colnames(globalInformation$modules$Catalogue$dataFrameMesRequetes),colNotTodisplay)
+        
+        #as.vector(unlist(strsplit(str,",")),mode="list")
+        
+        rowTodisplay<-(globalInformation$modules$Catalogue$dataFrameMesRequetes["user"]==globalInformation$user$email)
+        #globalInformation$user$dataFrameMesRequetes_distinct<-distinct(globalInformation$user$dataFrameMesRequetes[rowTodisplay,])
+        
+        mySelectDf<-distinct(globalInformation$user$dataFrameMesRequetes_distinct[rowTodisplay,colTodisplay])
+        DT::datatable(mySelectDf,filter = 'top',selection = 'single',editable = TRUE)
+      }
+      
+    })
+    
+    ####### set data
+    observeEvent(input$data_frame_mes_requetes_Mes_requetes_rows_selected,{
+      colNotTodisplay<-c("user","type","name")
+      colTodisplay<-setdiff(colnames(globalInformation$user$dataFrameMesRequetes_distinct),colNotTodisplay)
+      
+      rowSelected<-globalInformation$user$dataFrameMesRequetes_distinct[input$data_frame_mes_requetes_Mes_requetes_rows_selected,"name"]
+      #(globalInformation$user$dataFrameMesRequetes["user"]==globalInformation$user$email)&
+      rowTodisplay<-((globalInformation$user$dataFrameMesRequetes_distinct["name"]==rowSelected))
+      globalInformation$user$dataFrameRequete_Mes_requetes<-globalInformation$user$dataFrameMesRequetes_distinct[rowTodisplay,colTodisplay]
+    })
+    ####### data frame dataFrameMaRequeteSelected
+    output$data_frame_ma_requete_Mes_requetes<-DT::renderDataTable({
+      #req(input$data_frame_mes_requetes_Mes_requetes_rows_selected)
+      
+      mySelectDf<-globalInformation$user$dataFrameRequete_Mes_requetes
+      DT::datatable(mySelectDf,filter = 'top',selection = 'none',editable = TRUE)
+    })
+    #### Config pour gerer les modification du data frame
+
+    proxy_data_frame_ma_requete_Mes_requetes = dataTableProxy('data_frame_ma_requete_Mes_requetes')
+
+    observeEvent(input$data_frame_ma_requete_Mes_requetes_cell_edit, {
+      info = input$data_frame_ma_requete_Mes_requetes_cell_edit
+      #str(info)
+      i = info$row
+      j = info$col
+      v = info$value
+      globalInformation$user$dataFrameRequete_Mes_requetes[i, j] <<- DT::coerceValue(v, globalInformation$user$dataFrameRequete_Mes_requetes[i, j])
+      replaceData(proxy_data_frame_ma_requete_Mes_requetes, globalInformation$user$dataFrameRequete_Mes_requetes, resetPaging = FALSE)  # important
+    })
+    ###### bouton executer la requête selectionnée
+    ############################## GENERER LE DATA FRAME COMPLET ######################### 
+    ######################################################################################
+    observeEvent(input$ActionExecuter_ma_requete_Mes_requetes,{
+      req(input$data_frame_mes_requetes_Mes_requetes_rows_selected)
+      
+      myDataRequete<-globalInformation$user$dataFrameRequete_Mes_requetes
+      mydata<-data.frame()
+      
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      #progress$set(message = paste0("requete sur l'ensemble les collections : ",collectionName), value = 0)
+      progress$set(message = paste0("requête sur l'ensemble les collections : "), value = 0)
+      nbr<-1 +nrow(myDataRequete)
+      progress$inc(1/nbr)
+      
+      
+      
+      if(nrow(myDataRequete)>0){
+        for(i in 1:nrow(myDataRequete) ){
+          progress$inc(1/nbr,detail=paste0("Requête sur la collection : ", myDataRequete[i,"collection"]))
+          if(i==1){
+            mydata<-findQuery(globalInformation$globalDatabase,
+                              myDataRequete[i,"collection"],
+                              myDataRequete[i,"requete"]
+            )
+          }else{
+            requete1<-myDataRequete[i,"requete"]
+            requete<-str_sub(requete1, 2, str_length(requete1)-1)
+            #cat("\nma requete =",requete)
+            mykeyA<-getCollectionKeyMongo(globalInformation$globalDatabase,
+                                          globalInformation$jointuresCollections,
+                                          myDataRequete[i-1,"collection"],
+                                          myDataRequete[i,"collection"],
+                                          "cat_hs9.9_v1")
+            mykeyB<-getCollectionKeyMongo(globalInformation$globalDatabase,
+                                          globalInformation$jointuresCollections,
+                                          myDataRequete[i,"collection"],
+                                          myDataRequete[i-1,"collection"],
+                                          "cat_hs9.9_v1")
+            myNewConstrainte<-F
+            if(class(mydata[1,mykeyA])=="character"){
+              myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+            }else if(class(mydata[1,mykeyA])=="list"){
+              #myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+            }else if(class(mydata[1,mykeyA]) %in% c("numeric","integer")){
+              myNewConstrainte<-myConstraintUniqueIN_integer(mykeyB,mydata[,mykeyA])
+            }
+            
+            #### si la requete est vide
+            if(requete1=='{}'){
+              if(myNewConstrainte==F){
+                myQuery<-paste0("{}")
+              }else{
+                myQuery<-paste0("{",myNewConstrainte,"}")
+              }
+              
+              myQuery<-paste0("{",myNewConstrainte,"}")
+              #cat("\nquery = ",myQuery)
+            }else{
+              requete<-str_replace(requete,mykeyA,mykeyB)
+              if(myNewConstrainte==F){
+                myQuery<-paste0("{",requete,"}")
+              }else{
+                myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+              }
+              
+              myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+              #cat("\nquery = ",myQuery)
+            }
+            
+            
+            mydata<-findQuery(globalInformation$globalDatabase,
+                              myDataRequete[i,"collection"],
+                              myQuery
+            )
+          }
+        }
+        
+        
+        #cat("\nmyCollectionDataValider = ",nrow(mydata))
+        
+      }else{
+        #cat("\nmyCollectionDataValider est vide ")
+      }
+      rowSelected<-globalInformation$user$dataFrameMesRequetes_distinct[input$data_frame_mes_requetes_Mes_requetes_rows_selected,"type"]
+      dfName<-paste0("dataframe_",
+                     globalInformation$user$dataFrameMesRequetes_distinct[input$data_frame_mes_requetes_Mes_requetes_rows_selected,"type"],
+                     "_",
+                     globalInformation$user$dataFrameMesRequetes_distinct[input$data_frame_mes_requetes_Mes_requetes_rows_selected,"name"])
+      # "globalInformation$user$dataFrameRequete_Mes_requetes"
+      globalInformation$modules$Catalogue$listSaveDataFrame[[dfName]]<-mydata
+      
+    })
+    
+    
+    ###### data_frame_resultat_ma_requete_Mes_requetes
+    output$data_frame_resultat_ma_requete_Mes_requetes<-DT::renderDataTable({
+      
+      #dfName<-"globalInformation$user$dataFrameRequete_Mes_requetes"
+      dfName<-paste0("dataframe_",
+                     globalInformation$user$dataFrameMesRequetes_distinct[input$data_frame_mes_requetes_Mes_requetes_rows_selected,"type"],
+                     "_",
+                     globalInformation$user$dataFrameMesRequetes_distinct[input$data_frame_mes_requetes_Mes_requetes_rows_selected,"name"])
+
+      mySelectDf<-globalInformation$modules$Catalogue$listSaveDataFrame[[dfName]]
+      
+      DT::datatable(mySelectDf,filter = 'top',selection = 'none')
+    })
+    
+    
+    
+  }

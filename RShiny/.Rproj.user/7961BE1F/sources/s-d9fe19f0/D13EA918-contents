@@ -1,0 +1,8 @@
+#### INSERT SHINY CODE HERE ####
+uiLULLMTRT <- 
+tabItem
+(
+tabName = 'LULLMTRT',
+#### INSERT SHINY CODE HERE ####
+fluidPage()
+)#end tabItem

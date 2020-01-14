@@ -1,0 +1,10 @@
+[
+  
+    {"name" : "Microbaria", "collections" : ["obs_genes_cat_hs9.9_v1_Microbaria","obs_genes_mgs_cat_hs9.9_v1_Microbaria", "obs_mgs_cat_hs9.9_v1_Microbaria", "obs_samplemetadata_v1_Microbaria"],"catalog":"cat_hs9.9_v1", "version" : "v1", "database": "iogold_microbaria"},
+    
+    
+  {"name" : "MicrobariaCopy", "collections" : ["obs_genes_cat_hs9.9_v1_MicrobariaCopy", "obs_mgs_cat_hs9.9_v1_MicrobariaCopy", "obs_samplemetadata_v1_MicrobariaCopy"],"catalog":"cat_hs9.9_v1", "version" : "v1", "database":"iogold"},
+  
+  {"name" : "MicrobariaCopy16", "collections" : ["obs_genes_cat_hs9.9_v1_MicrobariaCopy16", "obs_mgs_cat_hs9.9_v1_MicrobariaCopy16", "obs_samplemetadata_v1_MicrobariaCopy16"],"catalog":"cat_hs9.9_v1", "version" : "v1", "database":"iogold"}
+  
+]

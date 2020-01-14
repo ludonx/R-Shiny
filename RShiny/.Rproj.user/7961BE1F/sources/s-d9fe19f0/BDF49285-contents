@@ -1,0 +1,11 @@
+[
+  {
+    "folderName":"Ma_console",
+    "ui":"tabItem_Ma_console",
+    "server":"serverMa_console(input, output, session, globalInformation)",
+    "menu":"menuItem(text='Ma Console',tabName = 'Ma_console',icon = icon('laptop-code'))",
+    "fileToSource":["serverMa_console.R","uiMa_console.R"],
+    "priority":10,
+    "linkModule":null
+  }
+]

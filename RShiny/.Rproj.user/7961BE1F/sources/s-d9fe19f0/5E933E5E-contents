@@ -1,0 +1,22 @@
+
+#print_dataFrame(globalInformation$user$listSaveDataFrame$def_genes_cat_hs9.9_v1)
+#mydataGeneBiotin <- globalInformation$Ma_console$dataFrame
+#mydataGeneBiotin<-globalInformation$user$listSaveDataFrame$def_genes_cat_hs9.9_v1
+
+#mydatasample <- findAll('iogold_microbaria','obs_samplemetadata_v1_Microbaria')
+
+mydataGeneAbundance <- 
+findQuery('iogold_microbaria',
+'obs_genes_cat_hs9.9_v1_Microbaria',
+myQueryUniqueIN("_row", mydataGeneBiotin$GeneName) )
+
+#dir()
+#print_text(mydataGeneAbundance)
+print_dataFrame(mydataGeneAbundance)
+
+
+
+
+
+
+

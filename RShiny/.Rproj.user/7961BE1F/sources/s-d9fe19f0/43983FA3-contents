@@ -1,0 +1,125 @@
+
+### ajouter un nouveau module ----
+newModule <- 
+function(moduleName,pathToConfig= '/home/ltekam/GIT_LAB_test/iogoldg/RShiny/config.json',priority=0,position=0,iconName = "angle-double-right")
+{
+  gi <- read_json(path =pathToConfig ,simplifyVector = TRUE)
+  gi <- gi[as.logical(gi$activated),]
+  
+  pathToModuleDirectory <- gi$pathToModule
+  pathToNewModule <- paste0(pathToModuleDirectory,moduleName)
+  if(dir.exists(pathToNewModule))
+  {
+    cat("ce module existe deja")
+  }
+  else{
+    dir.create(path = pathToNewModule )
+    
+    ## creation of new file ----
+    file_config <- paste0(pathToNewModule,'/config.json')
+    file_ui <- paste0(pathToNewModule,'/ui',moduleName,'.R')
+    file_server <- paste0(pathToNewModule,'/server',moduleName,'.R')
+    
+    
+    
+    file.create(file_config)
+    file.create(file_ui)
+    file.create(file_server)
+    
+    
+
+    ## *file_server ----
+    write( append=T, x = paste0("server",moduleName," <- "),file = file_server)
+    write( append=T, x = "function(input, output, session,globalInformation)", file = file_server)
+    write( append=T, x = "{",file = file_server)
+    write( append=T, x = "#### INSERT SHINY CODE HERE ####",file = file_server)
+    write( append=T, x = "",file = file_server)
+    write( append=T, x = "",file = file_server)
+    write( append=T, x = "",file = file_server)
+    write( append=T, x = "#### INSERT SHINY CODE HERE ####",file = file_server)
+    write( append=T, x = "}",file = file_server)
+
+    ## *file_ui ----
+    write( append=T, x = paste0("tabItem_",moduleName," <- "), file = file_ui)
+    write( append=T, x = "tabItem(",file = file_ui)
+
+    write( append=T, x = paste0('tabName = "',moduleName,'",'),file = file_ui)
+    write( append=T, x = "#### INSERT SHINY CODE HERE ####",file = file_ui)
+    write( append=T, x = "fluidPage()",file = file_ui)
+    write( append=T, x = "",file = file_ui)
+    write( append=T, x = "",file = file_ui)
+    write( append=T, x = "#### INSERT SHINY CODE HERE ####",file = file_ui)
+
+
+    write( append=T, x = ")#end tabItem",file = file_ui)
+
+    ## *file_config ----
+    df <- data.frame()
+    df[1,"folderName"]<-moduleName
+    df$ui <- paste0('tabItem_',moduleName)
+    df$server <- paste0('server',moduleName,'(input, output, session,globalInformation)')
+    df$menu <- paste0("menuItem(text='",moduleName,"',tabName = '",moduleName,"',icon = icon('",iconName,"'))")
+    df$fileToSource <- list(c(paste0("server",moduleName,".R"),paste0("ui",moduleName,".R")))
+    df$priority <- priority
+    df$linkModule <- "vide"
+    df$rang <- position
+    df$menu_en <- df$menu
+    write(toJSON(df),file =file_config )
+    
+  }
+  
+  
+}
+
+
+
+
+
+### ajouter collection a mongodb ----
+GenerateMyDataMultiAdmin<-
+  function(databaseName,collectionName,jsonFileName,pathJsonFileName){
+    
+    cheminCollection<-paste(pathJsonFileName,jsonFileName,sep='/')
+    
+    files<-dir(path=pathJsonFileName,pattern =jsonFileName ,ignore.case = T)
+    nbrFile<-length(files)
+    jsonFile<-c()
+    for(i in 1:nbrFile)
+    {
+      if(endsWith(files[i],".json")==TRUE)
+        jsonFile<-append(jsonFile,files[i])
+      
+    }
+    files<-jsonFile
+    nbrFile<-length(files)
+    if (nbrFile<=0) {
+      cat("\n** les fichiers Json : '",jsonFileName,"' n'exite pas au chemin indiqué **\n")
+      return(FALSE)
+    }else{
+      cat("\n** fichiers Json Trouvés : ",nbrFile,"***\n")
+      for(i in 1:nbrFile)
+      {
+        cat(files[i],"\n")
+        
+      }
+      db<-loadDataBase(databaseName,collectionName)
+      cat("** Supprimons la collecion si elle existe déjà ... \n")
+      db$drop()
+      cat("*** Ajoutons des éléments ...\n")
+      start_time<-Sys.time()
+      for(i in 1:nbrFile)
+      {
+        start_time_f<-Sys.time()
+        cat("\nAjout des données du fichier: '",files[i],"'")
+        cheminCollection<-paste(pathJsonFileName,files[i],sep='/')
+        db$insert(fromJSON(cheminCollection)) 
+        
+        cat(Sys.time()-start_time_f,'\n')
+      }
+      
+      cat(Sys.time()-start_time,'\n')
+      cat("\n[Fin : ajout des données OK] \n")
+      
+    }
+  }
+

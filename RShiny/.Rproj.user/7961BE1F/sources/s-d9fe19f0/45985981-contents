@@ -1,0 +1,9 @@
+[
+  {
+    "name":"Patient_analyses",
+    "ui":"tabItem_Patient_analyses",
+    "server":"serverPatient_analyses(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Patient analyses',tabName = 'Patient_analyses',icon = icon('user-md'))",
+    "fileToSource":["serverPatient_analyses.R","uiPatient_analyses.R"]
+  }
+]

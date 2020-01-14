@@ -1,0 +1,49 @@
+[
+  {"old_name" : "iogold_mesCollections","name":"collections", "number_lines" : 19, "number_columns": 11, "size" : 1, "type" : "iogold" , "database" : "iogold", "catalog": "cat_hs9.9_v1","description":"Contient des infomations des collections lièes à cette application, (à l'exception des collection CAGXXXXX )", "creator" : "Ludo"},
+  
+  {"old_name" : "iogold_projet", "name":"projects","number_lines" : 1, "number_columns": 1, "size" : 1, "type" : "iogold" , "database" : "iogold", "catalog": "cat_hs9.9_v1","description":"Contient la liste des projets requêtables via l'application", "creator" : "Ludo"},
+  
+  {"old_name" : "iogold_user", "name":"users","number_lines" : 16, "number_columns": 7, "size" : 1, "type" : "iogold" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "description":"Contient la liste des utilisateurs utilisant cette application", "creator" : "Ludo"},
+  
+  
+  
+    
+  {"old_name" : "ICGgenes","name":"def_genes_cat_hs9.9_v1", "number_lines" : 9879896, "number_columns": 36, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+    
+  {"old_name" : "ICGgenesMGS", "name":"def_genes_mgs_cat_hs9.9_v1","number_lines" : 9879896, "number_columns": 36, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  {"old_name" : "MGStaxonomy", "name":"def_mgstaxonomy_cat_hs9.9_v1","number_lines" : 3481, "number_columns": 20, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  {"old_name" : "module_definitions","name":"def_module_definitions_KEGGdb_5_19", "number_lines" : 792, "number_columns": 2, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  {"old_name" : "ko_definition","name":"def_ko_definition_KEGGdb_5_19", "number_lines" : 22078, "number_columns": 2, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  {"old_name" : "ko_Module_associations","name":"def_ko_Module_associations_KEGGdb_5_19", "number_lines" : 5103, "number_columns": 2, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  {"old_name" : "ko_Pathway_associations","name":"def_module_pathway_associations_KEGGdb_5_19", "number_lines" : 72972, "number_columns": 2, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  {"old_name" : "Module_Pathway_associations","name":"def_ko_pathway_associations_KEGGdb_5_19", "number_lines" : 960, "number_columns": 2, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  {"old_name" : "CAG","name":"def_cag_cat_hs9.9_v1", "number_lines" : 3463, "number_columns": 2, "size" : 1, "type" : "def" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"CatalogAnnotation_hs9.9","creator" : "Ludo"},
+  
+  
+  
+  {"old_name" : "MicrobariaGeneAbundance","name":"obs_genes_cat_hs9.9_v1_MicrobariaCopy", "number_lines" : 7855540, "number_columns": 173, "size" : 1, "type" : "obs" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"MicrobariaCopy","creator" : "Ludo"},
+  
+  {"old_name" : "MicrobariaMGSabundance", "name":"obs_mgs_cat_hs9.9_v1_MicrobariaCopy","number_lines" : 1436, "number_columns": 173, "size" : 1, "type" : "obs" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"MicrobariaCopy","creator" : "Ludo"},
+  
+  {"old_name" : "MicrobariaSampleMetadata","name":"obs_samplemetadata_v1_MicrobariaCopy", "number_lines" : 173, "number_columns": 15, "size" : 1, "type" : "obs" , "database" : "iogold", "catalog": "cat_hs9.9_v1", "project" :"MicrobariaCopy","creator" : "Ludo"},
+  
+  
+  
+    {"old_name" : "MicrobariaGeneAbundance","name":"obs_genes_cat_hs9.9_v1_Microbaria", "number_lines" : 7855540, "number_columns": 173, "size" : 1, "type" : "obs" , "database" : "iogold_microbaria", "catalog": "cat_hs9.9_v1", "project" :"Microbaria","creator" : "Ludo"},
+  
+  {"old_name" : "MicrobariaGeneAbundanceMGS","name":"obs_genes_mgs_cat_hs9.9_v1_Microbaria", "number_lines" : 2433554, "number_columns": 173, "size" : 1, "type" : "obs" , "database" : "iogold_microbaria", "catalog": "cat_hs9.9_v1", "project" :"Microbaria","creator" : "Ludo"},
+  
+  {"old_name" : "MicrobariaMGSabundance", "name":"obs_mgs_cat_hs9.9_v1_Microbaria","number_lines" : 1436, "number_columns": 173, "size" : 1, "type" : "obs" , "database" : "iogold_microbaria", "catalog": "cat_hs9.9_v1", "project" :"Microbaria","creator" : "Ludo"},
+  
+  {"old_name" : "MicrobariaSampleMetadata","name":"obs_samplemetadata_v1_Microbaria", "number_lines" : 173, "number_columns": 15, "size" : 1, "type" : "obs" , "database" : "iogold_microbaria", "catalog": "cat_hs9.9_v1", "project" :"Microbaria","creator" : "Ludo"}
+  
+  
+  
+  ]

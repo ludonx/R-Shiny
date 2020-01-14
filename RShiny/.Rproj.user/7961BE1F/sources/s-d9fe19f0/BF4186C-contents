@@ -1,0 +1,227 @@
+### IHM bouton de validation 
+# output$uiEffectuer_requete_complet_Les_Genes<-renderUI({
+#   req(input$ActionValider_definition_Les_Genes)
+#   box(status = "danger",
+#       #solidHeader = TRUE,
+#       width = 12,
+#       fluidRow(
+#         column(4,
+#                textInput(inputId ="textinput_name_requete_complet_Les_Genes" ,
+#                          label ="Entrer le nom du data frame :" ,
+#                          value ="mon_df_result" )
+#         ),#end column
+#         column(4,
+#                actionButton(inputId = paste0("ActionEffectuer_requete_complet_Les_Genes"),
+#                             label = "Obtenir la trame de données des requête combinées",
+#                             icon("object-group"), 
+#                             style="color: #fff; background-color: #5b4772; border-color: #5b4772"
+#                )
+#         )#end column
+#         
+#       )#end fluidRow
+#   )
+# })
+### IHM visualisation des résultats
+# output$uidata_frame_resultant<-renderUI({
+#   req(input$ActionValider_definition_Les_Genes)
+#   box(
+#         #title = "Les variables",
+#         status = "primary",
+#         #solidHeader = TRUE,
+#         collapsible = TRUE,collapsed = F,
+#         width = 12,
+#         fluidPage(
+#           fluidRow(
+#             column(6,uiOutput("uiselect_dataTable_resultat_def_catalog_Les_Genes"),
+#                    div(style = 'overflow-x: scroll',
+#                        #withSpinner(DT::
+#                                      dataTableOutput('dataTable_resultat_def_catalog_Les_Genes')
+#                                    #)
+#                    )#end div
+#             ),#end column
+#             column(6,uiOutput("uiplot_resultat_def_catalog_Les_Genes"))
+#           )#end fluidRow
+#           
+#         )#end fluidPage
+#     
+#   )#end box
+# })
+
+
+
+
+######################################### DATA FRAME ################################# 
+######################################################################################
+
+####### liste data frame 
+output$uiselect_dataTable_resultat_def_catalog_Les_Genes<-renderUI({
+  choices = names(globalInformation$user$listSaveDataFrame)
+  selectInput(inputId ="select_dataTable_resultat_def_catalog_Les_Genes" ,
+              label ="Sélectionner une trame de données enregistrer : " ,
+              choices = choices,
+              selected =choices[length(choices)],
+              multiple = F)
+})
+
+####### data frame
+output$dataTable_resultat_def_catalog_Les_Genes<- DT::renderDataTable({
+  req(input$select_dataTable_resultat_def_catalog_Les_Genes)
+  #globalInformation$user$dataFrameMesRequetes
+  mySelectDf<-globalInformation$user$listSaveDataFrame[[input$select_dataTable_resultat_def_catalog_Les_Genes]]
+  DT::datatable(mySelectDf,filter = 'top',selection = 'none') #editable = TRUE
+  
+})
+
+
+
+######################################### PLOT #######################################
+######################################################################################
+
+### IHM 
+output$uiplot_resultat_def_catalog_Les_Genes<-renderUI({
+  if(globalInformation$user$defSelected[length(globalInformation$user$defSelected)]=="def_genes_cat_hs9.9_v1"){
+    div(
+      actionButton(inputId = paste0("ActionGenerer_plot_Les_Genes"),
+                   label = "Générer le plot des données selectionées ",
+                   icon("chart-bar"), 
+                   style="color: #fff; background-color: #a0406e; border-color: #a0406e"
+      ),
+      uiOutput("uiselect_def_genes_Les_Genes"),
+      plotOutput("plot_resultat_def_catalog_Les_Genes")
+    )
+  }
+  
+})
+###
+output$uiselect_def_genes_Les_Genes<-renderUI({
+  req(input$ActionGenerer_plot_Les_Genes)
+  
+  choices = colnames(myDataFramePlot())
+  selectInput(inputId ="select_def_genes_Les_Genes" ,
+              label ="Sélectionner une colonne : " ,
+              choices = choices,
+              multiple = T)
+})
+
+### le dataframe sur lequel on fera le plot
+myDataFramePlot<-eventReactive(input$ActionGenerer_plot_Les_Genes,{
+  req(input$select_dataTable_resultat_def_catalog_Les_Genes)
+  mySelectDf<-globalInformation$user$listSaveDataFrame[[input$select_dataTable_resultat_def_catalog_Les_Genes]]
+  
+  return(mySelectDf)
+})
+### le plot
+output$plot_resultat_def_catalog_Les_Genes<-renderPlot({
+  req(input$ActionGenerer_plot_Les_Genes)
+  req(input$select_def_genes_Les_Genes)
+  
+  x<-myDataFramePlot()
+  
+  t<-myDataNbr(x,input$select_def_genes_Les_Genes[1],"GeneID")
+  c<-myBarPlot(t,input$select_def_genes_Les_Genes[1],"nombreGene",FALSE,T) 
+  c
+})
+
+
+############################## GENERER LE DATA FRAME COMPLET ######################### 
+######################################################################################
+observeEvent(input$ActionQuickSave_requetes_Les_Genes,{
+  req(input$textinput_name_requete_QuickSave_Les_Genes)
+
+  # Create a Progress object
+  progress <- shiny::Progress$new()
+  # Make sure it closes when we exit this reactive, even if there's an error
+  on.exit(progress$close())
+  #progress$set(message = paste0("requete sur l'ensemble les collections : ",collectionName), value = 0)
+  progress$set(message = paste0("requête sur l'ensemble les collections : "), value = 0)
+  nbr<-1 +nrow(globalInformation$user$dataFrameRequete)
+  progress$inc(1/nbr)
+
+  mydata<-data.frame()
+  if(nrow(globalInformation$user$dataFrameRequete)>0){
+    for(i in 1:nrow(globalInformation$user$dataFrameRequete) ){
+      progress$inc(1/nbr,detail=paste0("Requête sur la collection : ", globalInformation$user$dataFrameRequete[i,"collection"]))
+      
+      if(i==1){
+        myQueryString<-myQueryConstraintN(input[[paste0("select_Mes_contraintes_Les_Genes",globalInformation$user$dataFrameRequete[i,"collection"])]])
+        globalInformation$user$dataFrameRequete[i,"requete"]<-myQueryString
+        
+        mydata<-findQuery(globalInformation$globalDatabase,
+                          globalInformation$user$dataFrameRequete[i,"collection"],
+                          globalInformation$user$dataFrameRequete[i,"requete"]
+        )
+      }else{
+        requete1<-globalInformation$user$dataFrameRequete[i,"requete"]
+        requete<-str_sub(requete1, 2, str_length(requete1)-1)
+        #cat("\nma requete =",requete)
+        mykeyA<-getCollectionKeyMongo(globalInformation$globalDatabase,
+                                      globalInformation$jointuresCollections,
+                                      globalInformation$user$dataFrameRequete[i-1,"collection"],
+                                      globalInformation$user$dataFrameRequete[i,"collection"],
+                                      "cat_hs9.9_v1")
+        mykeyB<-getCollectionKeyMongo(globalInformation$globalDatabase,
+                                      globalInformation$jointuresCollections,
+                                      globalInformation$user$dataFrameRequete[i,"collection"],
+                                      globalInformation$user$dataFrameRequete[i-1,"collection"],
+                                      "cat_hs9.9_v1")
+        myNewConstrainte<-F
+        if(class(mydata[1,mykeyA])=="character"){
+          myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+        }else if(class(mydata[1,mykeyA])=="list"){
+          #myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+        }else if(class(mydata[1,mykeyA]) %in% c("numeric","integer")){
+          myNewConstrainte<-myConstraintUniqueIN_integer(mykeyB,mydata[,mykeyA])
+        }
+        
+        #### si la requete est vide
+        if(requete1=='{}'){
+          if(myNewConstrainte==F){
+            myQuery<-paste0("{}")
+          }else{
+            myQuery<-paste0("{",myNewConstrainte,"}")
+          }
+          
+          myQuery<-paste0("{",myNewConstrainte,"}")
+          #cat("\nquery = ",myQuery)
+        }else{
+          requete<-str_replace(requete,mykeyA,mykeyB)
+          if(myNewConstrainte==F){
+            myQuery<-paste0("{",requete,"}")
+          }else{
+            myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+          }
+          
+          myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+          #cat("\nquery = ",myQuery)
+        }
+        
+
+        mydata<-findQuery(globalInformation$globalDatabase,
+                          globalInformation$user$dataFrameRequete[i,"collection"],
+                          myQuery
+        )
+        globalInformation$user$dataFrameRequete[i,"requete"]<-myQuery
+      }
+      
+      globalInformation$user$dataFrameRequete[i,"nbrElemRequete"]<-nrow(mydata)
+      
+      dfName<-globalInformation$user$dataFrameRequete[i,"collection"]
+      globalInformation$user$listSaveDataFrame[[dfName]]<-mydata
+      
+    }#end for
+
+
+    #cat("\nmyCollectionDataValider = ",nrow(mydata))
+
+  }else{
+    #cat("\nmyCollectionDataValider est vide ")
+  }
+
+  dfName<-input$textinput_name_requete_QuickSave_Les_Genes
+  globalInformation$user$listSaveDataFrame[[dfName]]<-mydata
+
+})
+
+
+
+

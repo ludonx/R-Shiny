@@ -1,0 +1,79 @@
+#dataTable_user
+
+blast_ICG <- list(blastn = "IGC.fa",blastp = "IGC.pep") 
+serverblast<-
+  function(input, output, session,globalInformation){
+    # load blast 
+    observeEvent(input$load_blast,{
+      moduleInit(modulesHome = globalInformation$modules$blast$pathToModule)
+      module("load blast-2.6.0+")
+    })
+    # get fasta file ----
+    observe({
+      req(input$fasteFile_blast)
+      
+      # x<-read.fasta(input$fasteFile$datapath) # c'est une liste
+      # myfile<-renderPrint({x})
+      
+      updateTextAreaInput(
+        session=session,
+        inputId = "fata_file_blast",
+        #value = myfile() # affichage sous forme de liste
+        value = read_file(file=input$fasteFile_blast$datapath)
+      )
+    })
+    
+    # make cmd ----
+    observe({
+      # *check blast input$fasteFile$datapath
+      
+      query <- input$fata_file_blast
+      tmp <- tempfile(fileext = ".fa")
+      #this makes sure the fasta is formatted properly
+      if (startsWith(query, ">")){
+        writeLines(query, tmp)
+        #cat("file")
+      } else {
+        writeLines(paste0(">Query\n",query), tmp)
+        #cat("tmp")
+      }
+      
+      blast_name <- input$blast_search_blast
+      
+      
+      blast <- paste0(blast_name," -query ",tmp) 
+      db <- paste0("-db ",globalInformation$modules$blast$pathToICG ,blast_ICG[blast_name])
+      out <- paste0("-out ",globalInformation$modules$blast$pathToSaveResult,input$blast_output_file)
+      outfmt <- paste0("-outfmt ",input$outfmt_blast) 
+      evalue <- paste0("-evalue ",input$evalue_blast)
+      pid <- paste0("-perc_identity ",input$pid_blast)
+      
+      
+      
+      cmd <- paste( blast,
+                    db,
+                    out,
+                    outfmt,
+                    evalue,
+                    pid,
+        sep = " ")
+      
+      
+      updateTextAreaInput(
+        session = session,
+        inputId ="cmd_blast" ,
+        value = cmd
+      )
+    })
+    
+   
+    
+    # execute cmd ----
+    observeEvent(input$valider_blast,{
+      
+      system(input$cmd_blast)
+      output$res_blast<-renderText({read_file(file = paste0(globalInformation$modules$blast$pathToSaveResult,input$blast_output_file))})
+      
+    })
+    
+  }

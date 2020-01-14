@@ -1,0 +1,35 @@
+tabItem_Accueil<-
+  tabItem(
+    tabName = "Accueil",
+    
+    fluidRow(
+      valueBoxOutput("infoUsers"),
+      valueBoxOutput("infoUsersConnected"),
+      valueBoxOutput("infoUsersConnectedAll"),
+      valueBoxOutput("infoProjects"),
+      valueBoxOutput("infoCatalogs")
+      
+    ),#end fluidRow
+    fluidRow(
+      box(
+        title = "Information importante sur le fonctionement de l'application", status = "danger", solidHeader = TRUE,
+        collapsible = TRUE,collapsed = T, width = 12,
+        fluidRow(
+          column(3,uiOutput("uiCheckbox_globalInformation")),
+          column(9,withSpinner(DT::dataTableOutput("dataTable_globalInformation")))
+        )
+        
+      ),
+      box(
+        title = "Information sur les utilisateurs connectés", status = "success", solidHeader = TRUE,
+        collapsible = TRUE,collapsed = T, width = 12,
+        fluidRow(
+          column(3,uiOutput("uiCheckbox_Accueil_users_connecter")),
+          column(9,withSpinner(DT::dataTableOutput("dataTable_Accueil_users_connecter")))
+        )
+        
+      )
+    )#end fluidRow
+    
+  )#end tabItem
+

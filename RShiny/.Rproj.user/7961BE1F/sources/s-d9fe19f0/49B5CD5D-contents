@@ -1,0 +1,1868 @@
+
+################################################################
+#  _____       _                   ____            _           #
+# |_   _|     | |                 / __ \          (_)          #
+#   | |  _ __ | |_ ___  __ _ _ __| |  | |_ __ ___  _  ___ ___  #
+#   | | | '_ \| __/ _ \/ _` | '__| |  | | '_ ` _ \| |/ __/ __| #
+#   | |_| | | | ||  __| (_| | |  | |__| | | | | | | | (__\__ \ #
+# |_____|_| |_|\__\___|\__, |_|   \____/|_| |_| |_|_|\___|___/ #
+#                       __/ |                                  #
+#                      |___/                                   #
+################################################################
+
+################################################################
+# @script: server.R                                          
+# @author: Shasha Cui
+# @author: Edi Prifti
+# @date: September 2017                                                    
+################################################################
+
+source("./config.R", local = TRUE)
+source(paste0(launchPath, "serverCode/ResultsPanel/Comparative/plotComparativeResultFunction.R"), local = TRUE)
+
+# Current session 
+filenames <- function(dir) 
+{
+  return(tryCatch(expr = 
+  {
+    list.files(path = dir ,pattern="*.rda")
+  },
+  error=function(cond) {
+    message(paste("Path does not seem to exist:", dir))
+    message("Here's the original error message:")
+    message(cond)
+    # Choose a return value in case of error
+    NULL
+  },
+  warning=function(cond) {
+    message(paste("Path caused a warning:", dir))
+    message("Here's the original warning message:")
+    message(cond)
+    # Choose a return value in case of warning
+    NULL
+  }))
+  
+}
+
+shinyServer(function(input, output, session) {
+  
+  write("\n\n\n\n", file = paste0(launchPath, "predomics.log"), append = TRUE, sep = "\n")
+  
+  hide(id = "loading-content", anim = TRUE, animType = "fade")
+  shinyjs::show("app-content")
+  hideTab(inputId = "navbarPageID", target = "Data")
+  hideTab(inputId = "navbarPageID", target = "Settings")
+  hideTab(inputId = "navbarPageID", target = "Results")
+  hideTab(inputId = "navbarPageID", target = "Compte")
+  hide(id = "startExp")
+  hide(id = "folder")
+  hide(id = "analyseExp")
+  hide(id = "importedFolderPath")
+  
+  output$Connec <- renderText({ 
+    "Connection is necessary to start an experiment."
+  })
+  
+  
+  # Environnement global
+  
+  rm(list = ls(session$userData), envir = session$userData)
+  
+  envGlobal <- session$userData;
+  envGlobal$data <- new.env();
+  envGlobal$settings <- new.env();
+  envGlobal$results <- new.env();
+  envGlobal$results$comp <- new.env();
+  envGlobal$results$pop <- new.env();
+  envGlobal$results$best <- new.env();
+  
+  envGlobal$log<-reactiveValues(content=list("Welcome to your Log Term","@Username"));
+  
+  envGlobal$user_workspace <- user_workspace
+  envGlobal$authentification <- authentification
+  envGlobal$launchPath <- launchPath
+  envGlobal$currentSessionPath <- currentSessionPath
+  
+  #To add a text in the console do printConsole("your text") or envGlobal$log$content <- c(envGlobal$log$content, "your line") //or vector of lines
+  observe({
+    envGlobal$log$content
+    output[["console_log"]] <- renderUI({HTML(paste(do.call("paste", c(c("<p>",envGlobal$log$content),sep='<br/>'))),"</p>")});
+    js$ScrollTerminal()
+  })
+  
+  printConsole <- function(text = "")
+  {
+    # check for the existence of the global variable
+    if(!is.null(envGlobal$log$content))
+    {
+      # add the text
+      envGlobal$log$content <- c(envGlobal$log$content, text)
+      write(text, file = paste0(launchPath, "predomics.log"), append = TRUE, sep = "\n")
+    }
+  }
+  
+  # Environnement Data
+  envData <- envGlobal$data;
+  
+  # Environnement Settings
+  envSettings <- envGlobal$settings;
+  
+  # Environnement Results
+  envResults <- envGlobal$results;
+  
+  # Environnement Results/Comparative
+  envComp <- envGlobal$results$comp
+  
+  # Environnement Results/Population of model
+  envPop <- envGlobal$results$pop
+  
+  
+  # Environnement Results/Best model
+  envBest <- envGlobal$results$best
+  
+  ##################################################### REACTIVE VALUES
+  
+  # A reactive value to know if the session is loading. 
+  envData$loaded = reactiveValues(react = FALSE)
+  
+  # A reactive value to know if the graph is loading. 
+  #envData$loading_plot = reactiveValues(react = FALSE)
+  
+  # A reactive value to know if every variable has been filtered. 
+  envData$complete_filtering = reactiveValues(react = FALSE)
+  
+  #A reactive value to know if the user want to show the graph 
+  envData$show_graph = reactiveValues(react = FALSE)
+  
+  #############################################################
+
+  envData$currentFilter <- list(
+    '1' <- FALSE,
+    '2' <- "sliderDev",
+    '3' <- NA,
+    '4' <- FALSE,
+    '5' <- FALSE,
+    '6' <- "Prevby%",
+    '7' <- NA,
+    '8' <- FALSE,
+    '9' <- NA,
+    '10' <- "TopMostby#"
+  )
+  
+  ## Export session
+  
+  # Downloadable csv of selected dataset
+  
+  # output$downloadData <- downloadHandler(
+  #   filename = "current_session.zip",
+  #   content = function(file) {
+  #     if (exists("y", envir = envData) && exists("X", envir = envData) && exists("currentFilter", envir = envData))
+  #     {
+  #       if (exists("X_renamed", envir = envData))
+  #         save(y, X, X_renamed, file=paste0(envGlobal$currentSessionPath ,"db.rda"), envir = envData)
+  #       else
+  #         save(y, X, file=paste0(envGlobal$currentSessionPath, "db.rda"), envir = envData)
+  #       
+  #       filesToZip <- list.files(path = envGlobal$currentSessionPath, full.names = TRUE, recursive = FALSE, include.dirs = TRUE)
+  #       print(filesToZip)
+  #       if (length(filesToZip) > 0)
+  #       {
+  #         zip(zipfile = file, files = filesToZip) 
+  #         
+  #       }
+  #       else
+  #       {
+  #         zip(zipfile = file, files = paste0(envGlobal$currentSessionPath, "NothingToRead.txt")) 
+  #       }
+  #     }
+  #     else
+  #     {
+  #       print("Var not found !!!!!!!!")
+  #       zip(zipfile = file, files = paste0(envGlobal$currentSessionPath, "NothingToRead.txt")) 
+  #     }
+  #   }
+  # )
+  
+  ## Save session
+  observeEvent(input$do, {
+
+    ## Save state of environment
+    
+    print("before to save")
+    print(ls(envGlobal))
+    print(envData$currentFilter)
+    
+    if (exists("y", envir = envData) && exists("X", envir = envData) && exists("currentFilter", envir = envData))
+    {
+      if (exists("X_renamed", envir = envData))
+        save(y, X, X_renamed, file=paste0(envGlobal$currentSessionPath, "db.rda"), envir = envData)
+      else
+        save(y, X, file=paste0(envGlobal$currentSessionPath, "db.rda"), envir = envData)
+      
+      # save(currentFilter, file="./current_session/filter.rda", envir = envData)
+
+      ## Saving procedure
+      
+      time <- Sys.time()
+      date <- Sys.Date()
+      
+      files <- list.files(path = envGlobal$currentSessionPath, full.names = TRUE, recursive = FALSE, include.dirs = TRUE)
+
+      path_session <- paste(launchPath, "saved_session/session_",time,"_",date, sep="")
+      
+      dir.create(path = path_session, recursive = TRUE)
+      
+      file.copy(from = files, to = path_session, recursive = TRUE, overwrite = TRUE)
+      
+      printConsole("your environnement have been saved in the server") 
+    }
+    else
+    {
+      printConsole("ERROR : X,y and current filter where not found in the envrionnement")
+      print("Var not found !!!!!!!!")
+    }
+    
+  })
+  
+  ## Import session
+  loadingFolderPath <- reactive({
+    shinyDirChoose(input, id = 'folder', roots=c(wd=paste0(launchPath, 'saved_session')))   
+    return(print(parseDirPath(c(wd=paste0(launchPath, 'saved_session')), input$folder)))
+  })
+  
+  # Load session
+  observeEvent(input$analyseExp, {
+
+    if (dir.exists(path = envGlobal$currentSessionPath) == TRUE)
+    {
+      unlink(c(envGlobal$currentSessionPath), recursive = TRUE, force = FALSE)
+    }
+    
+    dir.create(path = envGlobal$currentSessionPath, recursive = TRUE)
+    files <- list.files(path = loadingFolderPath(), full.names = TRUE, recursive = FALSE, include.dirs = TRUE)
+    file.copy(from = files, to = envGlobal$currentSessionPath, recursive = TRUE, overwrite = TRUE)
+    
+    load(paste0(envGlobal$currentSessionPath, "db.rda"), envData)
+
+    envData$loaded$react = TRUE
+    
+    printConsole("Your session have been loaded")
+  })
+  
+  
+  ###########################################################################################################
+  ########################## SHOW GRAPH BUTTON 
+  
+  observeEvent(input$showGraph, {
+    
+    if(envData$show_graph$react == FALSE)
+    {
+      envData$show_graph$react = TRUE
+      printConsole("Graph function is actived") 
+    }
+    else
+    {
+      envData$show_graph$react = FALSE
+      printConsole("Graph function is desactived") 
+    }
+    
+  })
+
+  ###########################################################################################################
+  ########################## START NEW EXPERIMENT BUTTON 
+  
+  ## Start new experiment
+  observeEvent(input$startExp, {
+    
+    # We need to remove the old data we used before
+    if(exists("X", envir = envData) == TRUE)
+    {
+      remove("X", "X_renamed",envir =  envData)
+    }
+    if(exists("y", envir =  envData) == TRUE)
+    {
+      remove("y",envir =  envData)
+    }
+    
+    # Activate this observe event reload downlaod handler and show no graph
+    
+    
+    shinyjs::enable("file1")
+    shinyjs::enable("file3")
+    shinyjs::enable("file4")
+    shinyjs::enable("annotation")
+    
+    # I reset the download handler  
+    reset('file1')
+    reset('file3')
+    reset('file4')
+    reset('annotation')
+    
+    
+    reset('informationsDataset')
+    
+    
+    # we applyfilter to show a empty graph
+    applyFilterBut()
+    
+    #we also need to reset filter
+    
+    envData$currentFilter <- list(
+      '1' <- FALSE,
+      '2' <- "sliderDev",
+      '3' <- NA,
+      '4' <- FALSE,
+      '5' <- FALSE,
+      '6' <- "Prevby%",
+      '7' <- NA,
+      '8' <- FALSE,
+      '9' <- NA,
+      '10' <- "TopMostby#"
+    )
+    
+    envData$complete_filtering$react = FALSE
+    envData$show_graph$react = FALSE
+    envData$filesupdateRDA$react = FALSE
+    envData$filesupdate$react = FALSE
+
+    reset("standardDevCheck")
+    reset("standardDevBut")
+    reset("prevCheck")
+    reset("prevClassCheck")
+    reset("minPrevBut")
+    reset("prevalenceId")
+    reset("topMostCheck")
+    reset("topmostbut")
+    reset("topMostId")
+    
+    printConsole(paste0("envGlobal$currentSessionPath : ", envGlobal$currentSessionPath))
+    
+    if (dir.exists(path = envGlobal$currentSessionPath) == TRUE)
+    {
+      unlink(c(envGlobal$currentSessionPath), recursive = TRUE, force = FALSE) # we delete the current session 
+    }
+    
+    dir.create(path = envGlobal$currentSessionPath, recursive = TRUE)
+    
+    printConsole("A new clean environnment was created") 
+    
+  })
+  
+  #FileInput in uiOutput with tooltip
+  source(paste0(launchPath, "serverCode/DataPanel/fileInput.R"), local = TRUE)
+
+  ###############################################################################################################
+  ################### THE TEXT ASSOCIATED TO THE DATASET
+  
+  ## Informations X, y Files
+  output$informationsDataset <- renderText({ NULL })
+  
+  output$importedFolderPath <- renderText({
+    
+    print(loadingFolderPath())
+    if (length(loadingFolderPath()) == '0')
+    {
+      paste('N.A.')
+    }
+    else
+    {
+      loadingFolderPath()
+    }
+    
+  })
+  
+  #############################################################################################################
+
+  ################## REACTIVE MONITORING FUNCTION 
+  
+  ## CSV Filter checkbox
+  
+  YinCSVCheckBox <- reactive({
+    input$yFirstRow  # The reactive variable associated to the variable checking if the user have load Y 
+  })
+  
+  ## Apply filters
+  applyFilterBut <- reactive({
+    input$applyFilter # The reactive variable associated to the variable checking if the user have apply filter
+  })
+
+  ## StartExp Button
+  startExpButt <- reactive({
+    input$startExp # The reactive variable associated to the variable checking if the user have a start a fresh new experience
+  })
+  
+  ## Prevalence settings
+
+  prevCheckBox <- reactive({
+    input$prevCheck #The reactive variable associated to the variable checking if the user have apply prevcheck filter
+  })
+  
+  minPrevButValue <- reactive({
+    input$minPrevBut  #The reactive variable associated to the variable checking if the user have apply prevcheck 
+  })
+  
+  prevClassCheckBox <- reactive({
+    input$prevClassCheck 
+    
+  })
+  
+  prevSlider <- reactive({
+    paste(prevCheckBox(), minPrevButValue()) 
+  })
+  
+  ## Standard deviation settings
+  valueRangeStandardDev <- reactive({
+    input$standardDevId
+  })
+  
+  standardDevCheckBox <- reactive({
+    input$standardDevCheck
+  })
+  
+  standardDevButValue <- reactive({
+    input$standardDevBut
+  })
+  
+  standardDevSlider <- reactive({
+    paste(standardDevCheckBox(), standardDevButValue())
+  })
+  
+  ## Top most significance settings
+  topMostCheckBox <- reactive({
+    # This reactive handles the TopMost checkbox 
+    input$topMostCheck
+  })
+
+  TopMostButValue <- reactive({
+    # This reactive handles the TopMost radio button 
+    input$topmostbut
+  })
+  
+
+  TopMostButValue <- reactive({
+    # This reactive handles the TopMost radio button 
+    input$topmostbut
+  })
+  
+  TopMostSlider <- reactive({
+    # This reactive handles the TopMost part of the filtration
+    paste(topMostCheckBox(), TopMostButValue())
+  })
+  
+  #######################################################################################################################
+  ################################# RDA LOAD FILE
+  
+  
+  # a reactive value used to know if a file was uploaded to the web site by RDA . 
+  envData$filesupdateRDA = reactiveValues(react = FALSE)
+  
+  # a reactive fonction used to know if a cvs X, Y or Annotation was added by the RDA way. 
+  curFilesRDA <- reactive({
+    paste(Rfile1()) 
+  })
+  
+  observeEvent(curFilesRDA(), { # This fonction change the value of filesupdate$react to TRUE if X,y and annotation are loaded 
+    print('access curFiles RDA')
+    if( (("X" %in% ls(envData)) == TRUE) && (("y" %in% ls(envData) == TRUE)) ) 
+    {
+      envData$filesupdateRDA$react = TRUE
+      printConsole("The RDA database is completely loaded")
+      
+    }
+    else{
+      envData$filesupdateRDA$react = FALSE
+    }
+  })
+  
+  ################################# CVS LOAD FILE
+  
+  ## Load file 
+  
+  # a reactive value used to know if a file was uploaded to the web site by CSV . 
+  envData$filesupdate = reactiveValues(react = FALSE)
+
+  # a reactive fonction used to know if a cvs X, Y or Annotation was added by the CVS way. 
+  curFiles <- reactive({
+    paste(Rfile2(), Rfile3(), Rfile4())
+  })
+  
+  observeEvent(curFiles(), { # This fonction change the value of filesupdate$react to TRUE if X,y and annotation are loaded 
+
+    if( (("X" %in% ls(envData)) == TRUE) && (("y" %in% ls(envData) == TRUE)) && ("db.annot" %in% ls(envData) == TRUE) )
+    {
+      envData$filesupdate$react = TRUE
+      printConsole("The CSV database is completely loaded") 
+    }
+    else{
+      envData$filesupdate$react = FALSE
+    }
+    
+    
+  })
+  
+  ####################################################################################################################
+  ######################### FILTER VALUE STORAGE 
+  
+  # This reactive check out if the user have changed the graphical input of a filter
+  curFilt <- reactive({
+
+    paste(standardDevCheckBox(), standardDevButValue(), input$standardDevId, prevCheckBox(), 
+          prevClassCheckBox(), minPrevButValue(), input$prevalenceId, 
+          topMostCheckBox(), input$topMostId, input$topmostbut)
+  })
+  
+  #This Observe event change the value of the variables used to store  the current filter activated and there value
+  
+  observeEvent(curFilt(), {
+
+    envData$currentFilter[[1]] <- standardDevCheckBox()
+    envData$currentFilter[[2]] <- standardDevButValue()
+    envData$currentFilter[[3]] <- if (standardDevButValue() == "sliderDev") input$standardDevId else NA
+    envData$currentFilter[[4]] <- prevCheckBox()
+    envData$currentFilter[[5]] <- prevClassCheckBox()
+    envData$currentFilter[[6]] <- minPrevButValue()
+    envData$currentFilter[[7]] <- input$prevalenceId 
+    envData$currentFilter[[8]] <- topMostCheckBox()
+    envData$currentFilter[[9]] <- input$topMostId
+    envData$currentFilter[[10]] <- TopMostButValue()
+    
+  })
+  
+  
+  ######################################################################################################################
+  ##################### GRAPHICAL UPDATE TO USER INTERACTION
+  
+  
+  ##CVS 
+  
+  observeEvent(input$file1, { # we block csv adding when we add a rda file
+
+    shinyjs::disable("file3")
+    shinyjs::disable("file4") 
+    shinyjs::disable("annotation")
+    
+  })
+  
+  ## RDA
+  
+  
+  observeEvent(input$file3, { # we block csv adding when we add a rda file
+    
+    shinyjs::disable("file1")
+    
+  })
+  
+  observeEvent(input$file4, { # we block csv adding when we add a rda file
+    
+    shinyjs::disable("file1")
+    
+  })
+
+  ### prevSlider
+  observeEvent(prevSlider(), { #This Observe Event adapt the prevalence slider to the class of filtering ( by #, by %, or nothing)
+    
+    if ((prevCheckBox() == TRUE) && (minPrevButValue() == "Prevby%"))
+    {
+      shinyjs::enable("prevalenceId")
+      updateSliderInput(session,"prevalenceId",min = 0, max = 100, step = 1)
+    }
+    else if ((prevCheckBox() == TRUE) && (minPrevButValue() == "Prevby#"))
+    {
+      shinyjs::enable("prevalenceId")
+      updateSliderInput(session,"prevalenceId",min = 0, max = envData$length_y, step = 10)
+    }
+    else
+    {
+      shinyjs::disable("prevalenceId")
+    }
+  })
+  
+  ### prevSettings
+  observeEvent(prevCheckBox(), { #This Observe Event show the setting of prev filter if the user choose to use it.
+    if ((prevCheckBox() == TRUE))
+    {
+      shinyjs::enable("prevSettings")
+    }
+    else
+    {
+      shinyjs::disable("prevSettings")
+    }
+  })
+  
+  ### standardDevSlider
+  observeEvent(standardDevSlider(), { #This Observe Event show the slider of standard Dev filter if the user choose to use it.
+    if ((standardDevCheckBox() == TRUE) && (standardDevButValue() == "sliderDev"))
+    {
+      shinyjs::enable("standardDevId")
+    }
+    else
+    {
+      shinyjs::disable("standardDevId")
+    }
+  })
+  
+  ### standardDevSettings
+  observeEvent(standardDevCheckBox(), { #This Observe Event show the setting of standard Dev filter if the user choose to use it.
+    if ((standardDevCheckBox() == TRUE))
+    {
+      shinyjs::enable("standardDevBut")
+    }
+    else
+    {
+      shinyjs::disable("standardDevBut")
+    }
+  })
+  
+  ### topMostSlider
+  observeEvent(topMostCheckBox(), { #This Observe Event show the slider  and the setting of topmost filter if the user choose to use it.
+    if ((topMostCheckBox() == TRUE))
+    {
+      shinyjs::enable("topmostbut")
+      shinyjs::enable("topMostId")
+    }
+    else
+    {
+      shinyjs::disable("topmostbut")
+      shinyjs::disable("topMostId")
+    }
+  })
+  
+  observeEvent(TopMostSlider(), { #This Observe Event adapt the TopMostslider slider to the class of filtering ( by # or by %)
+    
+    if ((topMostCheckBox() == TRUE) && (TopMostButValue() == "TopMostby%"))
+    {
+      shinyjs::enable("topMostId")
+      updateSliderInput(session,"topMostId",min = 1, max = 100, step = 1)
+    }
+    else if ((topMostCheckBox() == TRUE) && (TopMostButValue() == "TopMostby#"))
+    {
+      shinyjs::enable("topMostId")
+      updateSliderInput(session,"topMostId"   ,min = 1, max = envData$nb_variable, step = 10)
+    }
+    else
+    {
+      shinyjs::disable("TopMostId")
+    }
+  })
+ 
+  
+  ###############################################################################################################################
+  ########################### THE GRAPH 
+  
+  output$no_overview <- renderUI({
+    
+    print(paste("previewPlots_rda : ",envData$filesupdateRDA$react))
+    applyFilterBut()
+    
+    print(paste("no_overview_csv : ",envData$filesupdate$react))
+    #envData$filesupdate$react
+
+    print(paste("no_overview : ", envData$loaded$react))
+    
+    if (("X" %in% ls(envData)) == FALSE)
+    {
+      #paste("Aucun aperçu.")
+      tags$p(id = "no_overviewDiv", "Please Import a Database")
+    }
+    else
+    {
+      if(envData$show_graph$react == TRUE)
+       {
+        if(envData$complete_filtering$react == TRUE)
+        {
+          tags$p(id = "no_overviewDiv", "All variables have been filtered")
+        }
+        else
+        {
+          NULL
+        }
+       }
+      else{
+        tags$div(
+          tags$p(id = "tipDiv", "Tip :"),
+          tags$p(id = "no_overviewDiv2", "To filter the database, click on Apply filters (or Show Graph)"),
+          tags$p(id = "no_overviewDiv2", "To see the graph, click on Show Graph (could be time consuming) ")
+        )
+      }
+    }
+    
+  })
+  
+  output$previewPlot <- renderPlot({
+    
+    #Rfile1()
+    #print(paste("previewPlots_rda : ",envData$filesupdateRDA$react))
+    
+    print(paste("previewPlots_csv : ", envData$filesupdate$react))
+    
+    startExpButt()
+    applyFilterBut()
+    
+    print(paste("previewPlots : ", envData$loaded$react))
+    
+    if ( (envData$filesupdate$react == TRUE) || (envData$filesupdateRDA$react == TRUE) ) ## We are just checking everything is in the dataset
+    {
+      withProgress(message = 'Making plot', value = 0, {
+
+        incProgress(1/5, detail = "Initialisation")
+        
+        ###########################################################################################
+        ######## RDA AND CSV DATASET ADJUSTEMENT 
+        
+        if(envData$filesupdate$react == TRUE)  # if we loaded X and y using CSV files 
+        {
+          
+          envData$X.annot <- as.data.frame(envData$db.annot) 
+          save(X,y,X.annot, file = paste0(envGlobal$currentSessionPath, "db.rda"), envir= envData)
+          
+          remove("X","y","X.annot",envir = envData)
+          load(paste0(envGlobal$currentSessionPath, "db.rda"),envData)
+         
+          
+          #rownames(envData$X) = paste0('SP_', 1:envData$nb_variable)
+          
+          
+          if (("X_renamed" %in% ls(envData)) == TRUE)
+          {
+            envData$X <- envData$X_renamed
+          }else
+          {
+            envData$X <- as.matrix(envData$X)
+            envData$X_renamed <- envData$X
+            envData$nb_variable <- nrow(envData$X)
+            envData$length_y <- length(envData$y)
+            rownames(envData$X) <- paste ('SP_', 1:envData$nb_variable)
+          }
+          
+        }
+        else if(envData$filesupdateRDA$react == TRUE)  # if we loaded X and y using a .rda files
+        {
+          
+          #rownames(envData$X) = paste0('SP_', 1:envData$nb_variable)
+          
+          if (("X_renamed" %in% ls(envData)) == TRUE)
+          {
+            envData$X <- envData$X_renamed
+          }else
+          {
+            
+            envData$X <- as.matrix(envData$X)
+            envData$X_renamed <- envData$X
+            envData$nb_variable <- nrow(envData$X)
+            envData$length_y <- length(envData$y)
+            rownames(envData$X) <- paste ('SP_', 1:envData$nb_variable)
+          }
+          
+          
+          
+        }
+        else
+        {
+          NULL
+        }
+        
+        #print(paste("The dataset has",nrow(envData$X),"variables and",ncol(envData$X),"observations"))
+        
+        ################################################################
+        ############ SANITY CHECK 
+        
+        # print(class(envData$y))
+        # print(envData$y)
+        
+        
+        if(!all(sort(levels(as.factor(envData$y)))==c("-1","1")))
+        {
+          stop("Please make sure to have the y class in the -1, 1 format")
+        }
+        
+        
+        ###############################################################
+        ############# FILTERING 
+        
+        incProgress(1/5, detail = "Filtration")
+        
+        if (envData$currentFilter[[4]] == TRUE) # The Prevalence filtering 
+        {
+          if(envData$currentFilter[[6]] == "Prevby%"){
+            if (envData$currentFilter[[5]]) # By Pourcentage and  by class
+            {
+              envData$X <- filterFeaturesByPrevalence(X = envData$X, y = envData$y, nb.prevalence = NULL, perc.prevalence = envData$currentFilter[[7]], by.class = TRUE)
+              
+            }
+            else  # By Pourcentage and not by class
+            {
+              envData$X <- filterFeaturesByPrevalence(X = envData$X, y = envData$y, nb.prevalence = NULL, perc.prevalence = envData$currentFilter[[7]], by.class = FALSE)
+            } 
+          }
+          else {
+            if (envData$currentFilter[[5]]) # Manually and by class
+            {
+              envData$X <- filterFeaturesByPrevalence(X = envData$X, y = envData$y, nb.prevalence = envData$currentFilter[[7]], by.class = TRUE)
+            }
+            else # Manually and not by class
+            {
+              envData$X <- filterFeaturesByPrevalence(X = envData$X, y = envData$y, nb.prevalence = envData$currentFilter[[7]], by.class = FALSE)
+            } 
+          }
+        }
+        
+        if (envData$currentFilter[[1]]) # The StandarDeviation filtering 
+        {
+          if (envData$currentFilter[[2]] == "auto#") # Automatic Filtering 
+          {
+            # This function when the threshold is set to auto, will compute the first derivate of the median(sd)/x and will find an automatic threshold. When threshold is a numerical it will be used as a threshold and when is something else, will automatically be set to 0.
+            envData$X <- filterNoSignal(X = envData$X, side = 1, threshold = "auto", verbose = FALSE)
+          }
+          else if (envData$currentFilter[[2]] == "sliderDev")  # Slider Filtering 
+          {
+            s.range <- range(apply(envData$X,1,sd)) 
+            envData$X <- filterNoSignal(X = envData$X, side = 1, 10^envData$currentFilter[[3]] , verbose = FALSE)
+          }
+        }
+        
+        if (envData$currentFilter[[8]])  # The Top Most filtering 
+        {
+          if(envData$currentFilter[[10]] ==  "TopMostby#"){
+            
+            if(  ("topmost" %in% ls(envData)) == FALSE) # We wheck if we already save the data
+            {
+              if(length(table(envData$y)) == 2)
+              {
+                typeTopMost <- "wilcoxon"
+              }else
+              {
+                typeTopMost <- "spearman"
+              }
+              
+              envData$topmost <- rownames(filterfeaturesK(data = envData$X_renamed, k = floor(envData$nb_variable) , trait = envData$y, type = typeTopMost, return.data = TRUE))
+            }
+            
+            
+            rownames_X <- rownames(envData$X)
+            print(rownames_X)
+            print(envData$topmost)
+            intersection <- intersect(rownames_X,envData$topmost)
+            length_intersection <- length(intersection)
+            
+            if(is.null(rownames_X)){
+              NULL
+            }
+            else if( envData$currentFilter[[9]] >= length_intersection) # We need to avoid unallocated reading 
+            {
+              print(class(envData$X))
+              envData$X <- envData$X[intersection[1:length_intersection],]
+            }
+            else
+            {
+              envData$X <- envData$X[intersection[1:envData$currentFilter[[9]]],]
+            }
+            
+            # print(paste("There are", nrow(envData$X) - nrow(envData$X_filt), "features filtered out"))
+            
+          }
+          else if(envData$currentFilter[[10]] ==  "TopMostby%"){
+            
+            if(  ("topmost" %in% ls(envData)) == FALSE) # We wheck if we already save the data
+            {
+              if(length(table(envData$y)) == 2)
+              {
+                typeTopMost <- "wilcoxon"
+              }else
+              {
+                typeTopMost <- "spearman"
+              }
+              
+              envData$topmost <- rownames(filterfeaturesK(data = envData$X_renamed, k = floor(envData$nb_variable) , trait = envData$y, type = typeTopMost, return.data = TRUE))
+              
+            }
+            
+            rownames_X <- rownames(envData$X)
+            intersection <- intersect(rownames_X,envData$topmost)
+            length_intersection <- length(intersection)
+            
+            if(is.null(rownames_X)){
+              NULL
+            }
+            else if( floor( ((envData$currentFilter[[9]]/100)*length_intersection)) >= length_intersection) # We need to avoid unallocated reading 
+            {
+              envData$X <- envData$X[intersection[1:length_intersection],]
+            }
+            else
+            {
+              envData$X <- envData$X[intersection[1:floor( (envData$currentFilter[[9]]/100)*length_intersection) ],]
+            }
+            
+            #print(paste("There are", nrow(envData$X) - nrow(envData$X_filt), "features filtered out"))
+          }
+          
+        }
+        
+        ###############################################################
+        ########## PLOTING 
+        
+        incProgress(1/5, detail = "Finalisation")
+        
+        if(envData$show_graph$react == TRUE) # We need to know if we have to show the graph 
+        {
+          # Get the prevalence for all but also by class for all the features of the database and measure them as proportions
+          test_null <- rownames(envData$X)
+          
+          if( is.null(test_null)) # If every variable is filtered, we need to show something
+          {
+            #test_null <- rownames(envData$X)
+            envData$complete_filtering$react = TRUE
+            print(paste("Complete Filtering : ",envData$complete_filtering$react))
+          }
+          else # We are going to plot the graph 
+          {
+            envData$complete_filtering$react = FALSE
+            print(paste("Complete Filtering : ",envData$complete_filtering$react))
+            
+            print(rownames(envData$X))
+            envData$prev <- getFeaturePrevalence(features = rownames(envData$X), X = envData$X_renamed, y = envData$y, prop=TRUE)
+            
+            # order by the overall prevalence and then by each of the classes 1 and -1
+            feat.order <- order(envData$prev$all, envData$prev$`1`, envData$prev$`-1`, decreasing = TRUE)
+            
+            #print(rownames(envData$X)[feat.order])
+            
+            incProgress(1/5, detail = "Rendering")
+            
+            # plot prevalence
+            
+            print( dim(envData$X) )
+            print(head(envData$X[,1:5]))
+            print( length(envData$y) )
+            
+            invisible(envData$g1 <- plotPrevalence(features = rownames(envData$X)[feat.order], X = envData$X_renamed, y = envData$y))
+            # plot abundance
+            invisible(envData$g2 <- plotAbundanceByCalss(features = rownames(envData$X)[feat.order], X = envData$X_renamed, y = envData$y))
+            
+            #envData$loading_plot$react = FALSE
+            
+            
+            grid.arrange(envData$g1, envData$g2, ncol=2, nrow=1,
+                         top=textGrob("Prevalence and abundance per class",
+                                      gp=gpar(fontsize=16,font=1)))
+            
+          }
+        }
+        else{
+          NULL
+        }
+        
+      })
+      
+      ##############################################################
+      ############ Message besides the graph 
+      class.cat = FALSE
+      
+      if(class(envData$y) == "character" | class(envData$y) == "factor")
+      {
+        class.cat = TRUE
+      }
+      
+      if(class(envData$y) == "numeric" & length(table(envData$y)) == 2)
+      {
+        class.cat = TRUE
+      }
+      
+      # prepare the message
+      if(class.cat) 
+      {
+        # get the names of the classes
+        cat.names <- names(table(envData$y))
+        cat.names.nb <- table(envData$y)
+        
+        card.message <- paste("| # of variables=", nrow(envData$X), " | # observations=", ncol(envData$X), " | # observations in class ", cat.names[1], "=",cat.names.nb[cat.names[1]]," | # observations in class ", cat.names[2], "=",cat.names.nb[cat.names[2]],sep="")
+      }else
+      {
+        card.message <- paste("| # of variables=", nrow(envData$X), " | # observations=", ncol(envData$X), " | mean=",signif(mean(envData$y),3)," | sd=",signif(sd(envData$y),3), sep="")
+      }
+      
+      output$informationsDataset <- renderText({
+        
+        card.message
+        
+      })
+    }
+    else
+    {
+      NULL
+    }
+    
+  })
+
+  #########################################################################
+  ################## DATA INPUT 
+  
+  ### RDA
+  Rfile1 <- reactive({ 
+    
+    infile <- input$file1
+    
+    if (!is.null(input$file1)) 
+    {
+      #envData$loading_plot$react = TRUE
+      load(input$file1$datapath, envData)
+      envData$nb_variable = nrow(envData$X)
+      envData$length_y <- length(envData$y)
+      rownames(envData$X) <- paste ('SP_', 1:envData$nb_variable)
+      #envGlobal$log$content <- c(envGlobal$log$content, "The rda database is completely loaded")
+      
+    }
+  })
+  
+  #### X in CSV 
+  Rfile2 <- reactive({
+    
+    infile <- input$file3
+    if (!is.null(input$file3)) 
+    {
+
+      if(YinCSVCheckBox() == TRUE)
+      {
+        
+        envData$X <- read.csv2(input$file3$datapath)
+        rownames(envData$X) <- envData$X[,1]
+        envData$X <- envData$X[,-1]
+        
+        envData$y <- as.character(envData$X[1,])
+        envData$X <- as.matrix(envData$X[-1,])
+        
+        envData$length_y <- length(envData$y)
+        envData$nb_variable = nrow(envData$X)
+        
+      }
+      else{
+        
+        envData$X <-read.csv(file=input$file3$datapath, sep=",", row.names = 1, header= TRUE)
+        envData$X <- as.matrix(envData$X)
+        envData$nb_variable = nrow(envData$X)
+        rownames(envData$X) <- paste ('SP_', 1:envData$nb_variable)
+       
+      }
+      
+     
+      
+      
+      ## Really important to get X. 
+      #envData$X_renamed <- envData$X 
+    }
+    
+    
+  })
+  
+  #### Y in CVS 
+  Rfile3 <- reactive({
+    infile <- input$file4
+    if (!is.null(input$file4)) 
+    {
+      envData$y <- as.character(read.table(file=input$file4$datapath, header=TRUE, sep=",")[,2])
+      envData$length_y <- length(envData$y)
+    }
+  })
+  
+  ### ANNOTATION in CSV
+  
+  Rfile4 <- reactive({
+    
+    infile <- input$annotation
+    # print("On ajoute les annotations au envData2")
+    
+    if (!is.null(input$annotation)) 
+    {
+      #print("On ajoute les annotations au envData")
+      load(input$annotation$datapath,envData)
+      
+    }
+    
+  })
+
+  ## TO DO
+  
+  #########################################################################
+  ################## SETTINGS 
+  
+  # create clf when click on buttion create_clf
+  # We create also dynamically the script launch_all_jobs.sh
+  observeEvent(input$create_clf,{
+    
+    envSettings$path <- envGlobal$currentSessionPath
+    envSettings$script <- paste0(launchPath, "predomics_jobs/job.predomics.sh")
+    envSettings$clean <- paste0(launchPath, "predomics_jobs/clean_workspace.sh")
+    
+    print('Create classifier:')
+    
+    nbRandom <- runif(1, 1, 10000)
+    account <- envGlobal$user_workspace
+    
+    textToWrite <- c("#!/bin/bash",
+                     "# declare two variables that will be used after",
+                     paste0("P=\"", envSettings$path, "\""),
+                     "echo $P",
+                     paste0("Script=\"", envSettings$script, "\""),
+                     "echo $Script",
+                     paste0("Clean=\"", envSettings$clean, "\""),
+                     "echo $Clean",
+                     paste0("Account=\"", account, "\""),
+                     "echo $Account",
+                     paste0("Nb=\"", nbRandom, "\""),
+                     "echo $Nb",
+                     "\n# number of CPUs reserved",
+                     paste0("N=", input$ncores),
+                     "\n# tab of job id",
+                     "JobIDs=()")
+    
+    envSettings$clf.list <- list()
+    if(input$terbeam){
+      
+      textToWrite <- c(textToWrite,
+                       "\n# TERBEAM")
+      
+      if(length(input$languages_beam)==1){
+        envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terBeam(sparsity = input$sparsity, 
+                                                maxNbOfModels = input$terbeam.maxNbOfModels,
+                                                language = input$languages_beam[1],
+                                                seed = input$seed,
+                                                nCores = input$ncores)
+        
+        cat(length(envSettings$clf.list),': classifier of terbeam in',input$languages_beam[1],'\n')
+        
+        textToWrite <- c(textToWrite,
+                         paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terbeam\",A=\"", input$languages_beam[1], "\",P=\"$P\",C=1 -N \"", paste("terbeam", input$languages_beam[1], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+        
+      }else{
+        for(t in 1:length(input$languages_beam)){
+          envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terBeam(sparsity = input$sparsity,
+                                                  maxNbOfModels = input$terbeam.maxNbOfModels,
+                                                  language = input$languages_beam[t],
+                                                  seed = input$seed,
+                                                  nCores = input$ncores)
+          cat(length(envSettings$clf.list),': classifier of terbeam in',input$languages_beam[t],'\n')
+          
+          textToWrite <- c(textToWrite,
+                           paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terbeam\",A=\"", input$languages_beam[t], "\",P=\"$P\",C=1 -N \"", paste("terbeam", input$languages_beam[t], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+          
+        }
+      }
+      
+    }
+    if(input$terda){
+      
+      textToWrite <- c(textToWrite,
+                       "\n# TERDA")
+      
+      if(length(input$languages_da)==1){
+        envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terda(sparsity = input$sparsity,
+                                              nblambdas = input$terda.nblambdas,
+                                              alpha = input$terda.alpha,
+                                              nRR = input$terda.nRR,
+                                              nIterations = input$terda.nIterations,
+                                              language = input$languages_da[1],
+                                              seed = input$seed,
+                                              nCores = input$ncores)
+        cat(length(envSettings$clf.list),': classifier of terda in',input$languages_da[1],'\n')
+        
+        textToWrite <- c(textToWrite,
+                         paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terda\",A=\"", input$languages_da[1], "\",P=\"$P\",C=1 -N \"", paste("terda", input$languages_da[1], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+        
+      }else{
+        for(t in 1:length(input$languages_da)){
+          envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terda(sparsity = input$sparsity,
+                                                nblambdas = input$terda.nblambdas,
+                                                alpha = input$terda.alpha,
+                                                nRR = input$terda.nRR,
+                                                nIterations = input$terda.nIterations,
+                                                language = input$languages_da[t],
+                                                seed = input$seed,
+                                                nCores = input$ncores)
+          cat(length(envSettings$clf.list),': classifier of terda in',input$languages_da[t],'\n')
+          
+          textToWrite <- c(textToWrite,
+                           paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terda\",A=\"", input$languages_da[t], "\",P=\"$P\",C=1 -N \"", paste("terda", input$languages_da[t], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+          
+        }
+      }
+      
+    }
+    if(input$terga1){
+      
+      textToWrite <- c(textToWrite,
+                       "\n# TERGA1")
+      
+      if(length(input$languages_ga1)==1){ 
+        envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terga1(sparsity = input$sparsity,
+                                               size_pop = input$size_pop, 
+                                               convergence_steps = input$convergence_steps, 
+                                               evolve.k1 = input$evolve.k1, 
+                                               language = input$languages_ga1[1],
+                                               seed = input$seed,
+                                               nCores = input$ncores)
+        cat(length(envSettings$clf.list),': classifier of terga1 in',input$languages_ga1[1],'\n')
+        
+        textToWrite <- c(textToWrite,
+                         paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terga1\",A=\"", input$languages_ga1[1], "\",P=\"$P\",C=1 -N \"", paste("terga1", input$languages_ga1[1], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+        
+      }else{
+        for(t in 1:length(input$languages_ga1)){
+          envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terga1(sparsity = input$sparsity,
+                                                 size_pop = input$size_pop, 
+                                                 convergence_steps = input$convergence_steps,
+                                                 evolve.k1 = input$evolve.k1,
+                                                 language = input$languages_ga1[t],
+                                                 seed = input$seed,
+                                                 nCores = input$ncores)
+          cat(length(envSettings$clf.list),': classifier of terga1 in',input$languages_ga1[t],'\n')
+          
+          textToWrite <- c(textToWrite,
+                           paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terga1\",A=\"", input$languages_ga1[t], "\",P=\"$P\",C=1 -N \"", paste("terga1", input$languages_ga1[t], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+          
+        }
+      }
+      
+    }
+    if(input$terga2){
+      
+      textToWrite <- c(textToWrite,
+                       "\n# TERGA2")
+      
+      if(length(input$languages_ga2)==1){ 
+        envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terga2(sparsity = input$sparsity,
+                                               size_pop = input$size_pop,
+                                               nb_gen = input$nb_gen,
+                                               select_perc = input$terga2.select_perc,
+                                               language = input$languages_ga2[1],
+                                               seed = input$seed,
+                                               nCores = input$ncores)
+        cat(length(envSettings$clf.list),': classifier of terga2 in',input$languages_ga2[1],'\n')
+        
+        textToWrite <- c(textToWrite,
+                         paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terga2\",A=\"", input$languages_ga2[1], "\",P=\"$P\",C=1 -N \"", paste("terga2", input$languages_ga2[1], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+        
+      }else{
+        for(t in 1:length(input$languages_ga2)){
+          envSettings$clf.list[[length(envSettings$clf.list)+1]] <- terga2(sparsity = input$sparsity,
+                                                 size_pop = input$size_pop, 
+                                                 nb_gen = input$nb_gen,
+                                                 select_perc = input$terga2.select_perc,
+                                                 language = input$languages_ga2[t],
+                                                 seed = input$seed,
+                                                 nCores = input$ncores)
+          cat(length(envSettings$clf.list),': classifier of terga2 in',input$languages_ga2[t],'\n')
+          
+          textToWrite <- c(textToWrite,
+                           paste0("JobIDs=($JobIDs $(qsub -l nodes=1:ppn=\"$N\" -v F=\"terga2\",A=\"", input$languages_ga2[t], "\",P=\"$P\",C=1 -N \"", paste("terga2", input$languages_ga2[t], account, nbRandom, sep = "_"), "\" $Script -q ican))"))
+          
+        }
+      }
+      
+    }
+    # if(input$metal){
+    #   ga.list <-  input$lang_learn_metal
+    #   mat <- matrix(0, nrow = 3, ncol = 3)
+    #   rownames(mat) <- c("terbeam","terda","terga2")
+    #   colnames(mat) <- c("terinter","bininter","ratio")
+    #   if("terbeam-terinter" %in% ga.list){mat[1,1] <- 1}
+    #   if("terbeam-bininter" %in% ga.list){mat[1,2] <- 1}
+    #   if("terbeam-ratio" %in% ga.list){mat[1,3] <- 1}
+    #   if("terda-terinter" %in% ga.list){mat[2,1] <- 1}
+    #   if("terda-bininter" %in% ga.list){mat[2,2] <- 1}
+    #   if("terda-ratio" %in% ga.list){mat[2,3] <- 1}
+    #   if("terga2-terinter" %in% ga.list){mat[3,1] <- 1}
+    #   if("terga2-bininter" %in% ga.list){mat[3,2] <- 1}
+    #   if("terga2-ratio" %in% ga.list){mat[3,3] <- 1}
+    #   clf.metal <- metal(sparsity=input$sparsity,
+    #                      nCores = input$nCores,
+    #                      seed = input$seed,
+    #                      unificator.evolveMethod = input$option_metal[1])
+    #   clf.metal$params$list.clfs <- generator_metal(mat = mat,clf = clf.metal)
+    #   envSettings$clf.list[[length(envSettings$clf.list)+1]] <- clf.metal
+    #   cat(length(envSettings$clf.list),': classifier of METAL','\n')
+    # }
+  
+    textToWrite <- c(textToWrite,
+                     "\n# clean workspace",
+                     "qsub -l nodes=1:ppn=\"$N\" -v ACC=\"$Account\" NB=\"$Nb\" P=\"$P\" -W depend=afterany:$JobIDs -N \"clean_workspace\" $Clean -q ican",
+                     "\n# check queue progression",
+                     "qstat | tail -n 24")
+    
+    #save(clf.list, file = "~/predomicsapp/clf.list.rda", envir = envSettings)
+    
+    source(paste0(launchPath, "serverCode/SettingsPanel/make_db.R"), local = TRUE)
+    
+    print("db and config saved")
+    printConsole("db and config saved")
+    
+    write(textToWrite, file = paste0(envSettings$path, "launch_all_jobs.sh"), append = FALSE, sep = "\n")
+    print("launch_all_jobs.sh created")
+    printConsole("launch_all_jobs.sh created")
+    
+  })
+  
+  observeEvent(input$analyse, {
+
+    if (file.exists(paste0(envGlobal$currentSessionPath, "launch_all_jobs.sh"))){
+      cmd <- paste0("bash ", envGlobal$currentSessionPath, "launch_all_jobs.sh");
+      system(cmd)
+      
+      printConsole("Analyse launched")
+      
+    } else{
+      showNotification(ui =  "launch experiment NOT READY. Please import the dataset and/or configure the experiment parameters.",
+                       closeButton = TRUE,
+                       duration = 5,
+                       session = session)
+    }
+    
+  })
+  
+  
+  # #filter the result
+  # Filtering <- eventReactive(input$Thresholdauto,{
+  #   # This function when the threshold is set to auto, will compute the first derivate of the median(sd)/x and will find an automatic threshold. When threshold is a numerical it will be used as a threshold and when is something else, will automatically be set to 0.
+  #   X_filt <- filterNoSignal(X = X, side = 1, threshold = "auto", verbose = FALSE)
+  #   print(paste("There are",nrow(X) - nrow(X_filt),"features filtered out"))
+  #   
+  #   # Get the prevalence for all but also by class for all the features of the database and measure them as proportions
+  #   prev <- getFeaturePrevalence(features = rownames(X_filt), X = X, y = y, prop=TRUE)
+  #   # order by the overall prevalence and then by each of the classes 1 and -1
+  #   feat.order <- order(prev$all, prev$`1`, prev$`-1`, decreasing = TRUE)
+  #   
+  # })
+
+  sparsityBounds <- reactive({
+     paste(input$minSparsity, input$maxSparsity)
+  })
+  
+  observeEvent(sparsityBounds(), {
+    updateSliderInput(session, inputId = "sparsity", label = "range of sparsity to be explored:", value = (input$minSparsity + input$maxSparsity)/2,
+                      min = input$minSparsity, max = input$maxSparsity, step = 1)
+  })
+  
+  ######## SANDY CODE - Plot comparative results tab########
+  #path <- "/data/projects/predomics_testing/analyses/2.db_segata/2.db_cirrhose_stage1/pathway/results"
+  #path          <- "~/predomicsapp/usecase1/results"
+  envGlobal$path <- paste0(envGlobal$currentSessionPath, "results")
+  
+  observeEvent(envGlobal$currentSessionPath, {
+    
+    envGlobal$path <- paste0(envGlobal$currentSessionPath, "results")
+    printConsole(paste0("envGlobal$path : ", envGlobal$path))
+    
+  })
+  
+  pathReact <- reactive({
+    
+    envGlobal$path
+    
+  })
+  
+  hide("plots")
+  
+  
+  #Global parameters for this tab
+  list.of.learners  <-  reactiveValues(changed = TRUE, 
+                                       list.results = NULL,
+                                       g = NULL # ggplot graph
+  )
+  
+  
+  
+  #####This block is to compute plots if necessary and when Results's tab is active
+  observe({
+    envGlobal$path
+    #pathReact()
+    
+    if(input$navbarPageID=='Connexion')
+    {
+      dataModal <- function(failed = FALSE) {
+        modalDialog(
+          div(
+            class = "login",
+            textOutput("pass"),
+            uiOutput("uiLogin"),
+            tags$head(tags$style("#pass{color: red;"))
+          ),
+          
+          fluidRow(
+            column(3)
+            #       column(8,
+            #              div(class = "logininfo",
+            #                  uiOutput("userPanel")
+            #              ),
+            #              tags$style(type="text/css", ".logininfo { text-align: right;
+            #                         position:relative;
+            #                         top: 5%;
+            #                         left: 90%;
+            #                         background-color: grey;
+            # }")
+            #            # hr(),
+            #            # div(class = "DataTable",
+            #            #     uiOutput('dataTable')
+            #            # )
+            #              )
+          ),
+          fluidRow(
+            div(class = "span1",
+                uiOutput("obs")
+            )
+          ),
+          
+          if (failed)
+            div(tags$b("Invalid name of data object", style = "color: red;")),
+          
+          footer = tagList(
+            actionButton("Cancel","Cancel"),
+            actionButton("Login", "Log in"),
+            actionButton("Signin", "Sign in")
+          )
+        )
+      }
+      USER <- reactiveValues(Logged = FALSE , Signed = FALSE, session = session$user)
+      
+      source(paste0(launchPath, "login.R"),  local = TRUE)
+      showModal(dataModal())
+    }
+    else if(input$navbarPageID=='Deconnexion'){
+      session = getDefaultReactiveDomain(); 
+      session$reload()
+      
+    }
+    
+    else if(input$navbarPageID=='Results' && is.null(list.of.learners$list.results)){
+      #path          <- "~/predomicsapp/usecase1/results" # the path where the results are found /result dir  
+      
+      pattern       <- "" # the pattern to search for files if not given than "results|rda" is given by default /terga.result
+      path.pdf      <- "" # the pattern to search for files if not given than "results|rda" is given by default
+      printConsole(paste("The results will be searched in:",envGlobal$path))
+      printConsole(paste("The pattern to used is:",pattern))
+      
+      # get the path names
+      files <- dir(envGlobal$path, pattern = pattern)
+      if(length(files)==0)
+      {
+        
+        #TO DECIDE
+        #stop("No results are found. Please verify the path and pattern!")
+        
+        
+        showNotification(ui =  "Make sure you have your experiences'files in the system",
+                         closeButton = TRUE,
+                         duration = NULL,
+                         session = session)
+      }
+      
+      else
+      {
+        # get the file path
+        files.path <- paste(envGlobal$path, files, sep="/")
+        job.names <- gsub("results.","",files)
+        job.names <- gsub("_.*","",job.names)
+        
+        list.results <- list() # get the results
+        for(i in 1:length(files.path)) # contient tous les files
+        {
+          # load the file
+          print(paste("Loading results:",files[i]))
+          printConsole(paste("Loading results:",files[i]))
+          #envGlobal$log$content<-c(envGlobal$log$content,paste("Loading results:",files[i]))
+          tryCatch(
+            {
+              load(files.path[i])
+            },
+            error=function(cond) {
+              showNotification(ui =  "There is an error with access of the files.",
+                               closeButton = TRUE,
+                               duration = NULL,
+                               session = session)
+              showNotification(ui = cond,
+                               closeButton = TRUE,
+                               duration = NULL,
+                               session = session)
+            },
+            warning=function(cond) {
+              showNotification(ui =  "There is a warning with access of the files.",
+                               closeButton = TRUE,
+                               duration = NULL,
+                               session = session)
+              showNotification(ui = cond,
+                               closeButton = TRUE,
+                               duration = NULL,
+                               session = session)
+            }
+            
+          )
+          
+          # two objects need to be there a) the clf and b) the results
+          clf.name <- paste("clf",job.names[i], sep=".")
+          result.name <- paste("res",job.names[i], sep=".")
+          
+          tryCatch({
+            
+            # sanity check
+            if(!isClf(get(clf.name)))
+            {
+              stop(paste("The clf object", clf.name, "does not seem to be valid. Please verify!"))
+            }
+            
+            res <- get(result.name)
+            if(!isExperiment(res))
+            {
+              stop(paste("The clf object", clf.name, "does not seem to be valid. Please verify!"))
+            }
+          
+          },
+          # print an errors if it fails
+          warning=function(e){
+            
+            # two objects need to be there a) the clf and b) the results
+            clf.name <- paste0(paste("clf",job.names[i], sep="."), ".")
+            result.name <- paste0(paste("res",job.names[i], sep="."), ".")
+            
+            print("Warning !!!")
+            
+            # sanity check
+            if(!isClf(get(clf.name)))
+            {
+              stop(paste("The clf object", clf.name, "does not seem to be valid. Please verify!"))
+            }
+            
+            res <- get(result.name)
+            if(!isExperiment(res))
+            {
+              stop(paste("The clf object", clf.name, "does not seem to be valid. Please verify!"))
+            }
+          },
+          error=function(e){
+            
+            # two objects need to be there a) the clf and b) the results
+            clf.name <- paste0(paste("clf",job.names[i], sep="."), ".")
+            result.name <- paste0(paste("res",job.names[i], sep="."), ".")
+            
+            print("Error !!!")
+            print(clf.name)
+            print(result.name)
+            
+            # sanity check
+            if(!isClf(get(clf.name)))
+            {
+              stop(paste("The clf object", clf.name, "does not seem to be valid. Please verify!"))
+            }
+            
+            res <- get(result.name)
+            if(!isExperiment(res))
+            {
+              stop(paste("The clf object", clf.name, "does not seem to be valid. Please verify!"))
+            }
+          })
+          
+          list.results[[i]] <- res
+        }
+        
+        names(list.results) <- job.names
+        list.of.learners$list.results<-list.results
+        if(length(filenames(envGlobal$path))>0)
+        {
+          updateCheckboxGroupInput(session,"ListOfExperience","Select your models",
+                                   choices = filenames(envGlobal$path),
+                                   selected = filenames(envGlobal$path)
+          )
+          updateSelectInput(session = session, inputId = "expForPopOfModeleSelector", 
+                            label = "Select an experiment between selected ones", 
+                            choices = filenames(envGlobal$path)
+          )
+          shinyjs::show(id = "checkAllExpButton")
+          shinyjs::show(id = "expForPopOfModeleSelector")
+          shinyjs::show(id = "expForPopOfModeleActivatorButton")
+          shinyjs::show(id = "unCheckAllExpButton")
+          shinyjs::show(id = "UpdateGraph")
+          shinyjs::show(id = "RegExpfilterTxtInput")
+          shinyjs::show(id = "RegExpfilterActivatorButton")
+        }
+        click("UpdateGraph")
+      }  
+    }
+    
+  })
+  
+  
+  
+  filename<-reactive({filenames(envGlobal$path)})
+  ###Default Settings for UI
+  
+  ####This block is to update a message panel if there is no plots to show
+  output$message_plot<- renderText(expr = {
+    if( !is.null(list.of.learners$list.results))
+    {  
+      if(length(filename()) > 0 && input$GraphList != '')
+      {
+        "Computing data"
+      }
+      else{
+        "No data selected"
+      }
+    }
+    else
+    {
+      "There seems to be a problem, please contact the admin"
+    }
+  })
+  
+  # This block serves to update the plot tab and make necessary computations 
+  observeEvent( eventExpr = input$UpdateGraph,
+                {
+                  if(! is.null(list.of.learners$list.results))
+                  {  
+                    nomFichier <- c()
+                    
+                    if (list.of.learners$changed) 
+                    {
+                      foundfiles <- filename()
+                    }
+                    else
+                    {
+                      foundfiles <- input$ListOfExperience
+                    }
+                    
+                    if( !is.null(foundfiles))
+                    {
+                      # for each experiemnt
+                      for(i in 1:length(foundfiles))
+                      {
+                        fich <- gsub("results.","",foundfiles[i])
+                        fich <- gsub("_.*","",fich)
+                        nomFichier <- c(nomFichier, fich)
+                      }
+                    }
+                    
+                    if(length(foundfiles)>0)
+                    {
+                      best <- 'best' %in% input$options
+                      ci <- 'ci' %in% input$options
+                      generalisation <- 'generalisation'  %in% input$options
+                      list.of.plots <- myPlotCompRes(digested.results = mergeResults(list.results = list.of.learners$list.results[nomFichier],
+                                                                                     sparsity = NULL,
+                                                                                     penalty = input$Penaltyid,
+                                                                                     penalty_by_kfold = FALSE),
+                                                     ylim = c(0.5,1),
+                                                     best = best,
+                                                     ci = ci,
+                                                     generalization=generalisation)
+                      
+                      # add the ggplot graph directly to the final object
+                      list.of.learners$g <- list.of.plots
+                      if(input$GraphList %in% names(list.of.plots))
+                      {
+                        updateSelectInput(session = session,
+                                          inputId = "GraphList", 
+                                          label = "Select the attributes to display",
+                                          choices =names(list.of.plots),
+                                          selected = input$GraphList)
+                      }
+                      else
+                      {
+                        updateSelectInput(session = session,
+                                          inputId = "GraphList",
+                                          label = "Select the attributes to display",
+                                          choices =names(list.of.plots))
+                      }
+                    }
+                    list.of.learners$changed <- FALSE
+                  }
+                })
+  
+  
+  observe({
+    input$ListOfExperience
+    input$GraphList
+    if( !is.null(list.of.learners$list.results))
+    {
+      if(length(input$ListOfExperience>0) && input$GraphList!='')
+      {
+        hide(id = "message_plot",
+             anim = TRUE,
+             animType = "fade")
+        shinyjs::show(id = "plots",
+             anim = TRUE,
+             animType = "fade")
+        if(!is.null(list.of.learners$g[[input$GraphList]]))
+        {
+          shinyjs::show(id = "down")
+          shinyjs::show(id = "type")
+          output$plotingArea<- renderPlotly({list.of.learners$g[[input$GraphList]]})
+        }
+        else
+        {
+          hide(id = "down")
+          hide(id = "type")
+        }
+      }
+      else
+      {
+        shinyjs::show(id = "message_plot",
+             anim = TRUE,
+             animType = "fade")
+        hide( id = "plots",
+              anim = TRUE,
+              animType = "fade")
+      }
+    }
+  })
+  
+  # Handlind the button 'more detail'
+  observeEvent(eventExpr = input$expForPopOfModeleActivatorButton, 
+               handlerExpr = {
+                 #Quentin's filename's var = input$expForPopOfModeleSelector
+                 envPop$selectedRes = input$expForPopOfModeleSelector
+                 print(envPop$selectedRes)
+                 
+                 ######## QUENTIN CODE ############
+                 source(paste0(launchPath, "serverCode/ResultsPanel/PopulationModel/popview.R"), local = TRUE)
+                 
+                 updateTabsetPanel(session = session,
+                                   inputId = "onglet_detail",
+                                   selected = "Population of models")
+                 
+                 
+               }
+  )
+  
+  # check all
+  observeEvent(eventExpr = input$checkAllExpButton,
+               handlerExpr = {
+                 updateCheckboxGroupInput(session,"ListOfExperience","Select your models",
+                                          choices = filename(),
+                                          selected = filename()
+                 )
+                 updateSelectInput(session = session, 
+                                   inputId = "expForPopOfModeleSelector", 
+                                   label = "Select an experiment between selected ones", 
+                                   choices = filename()
+                 )
+               }
+  )
+  
+  # uncheck all
+  observeEvent(eventExpr = input$unCheckAllExpButton,
+               handlerExpr = {
+                 updateCheckboxGroupInput(session = session,
+                                          inputId = "ListOfExperience",
+                                          label = "Select your models",
+                                          choices = filename(),
+                                          selected = NULL)
+                 updateSelectInput(session = session,
+                                   inputId = "expForPopOfModeleSelector",
+                                   label = "Select an experiment between selected ones")
+               }
+  )
+  
+  # activate search filter
+  observeEvent(eventExpr = input$RegExpfilterActivatorButton,
+               handlerExpr = {
+                 updateCheckboxGroupInput(session = session,
+                                          inputId = "ListOfExperience",
+                                          label = "Select your models",
+                                          choices = filename(),
+                                          selected = grep(input$RegExpfilterTxtInput, filenames(envGlobal$path),value = TRUE)
+                 )
+                 updateSelectInput(session = session, 
+                                   inputId = "expForPopOfModeleSelector", 
+                                   label = "Select an experiment between selected ones", 
+                                   choices = grep(pattern = input$RegExpfilterTxtInput,
+                                                  x = filename(),
+                                                  value=TRUE)
+                 )
+               }
+  )
+  
+  
+  # TOFIX rename to download.plots
+  output$down <- downloadHandler(
+    filename =  function() {
+      paste("results_plots", ifelse(test = input$type=="pdf",yes = "pdf",no = "zip"), sep=".")
+    },
+    # content is a function with argument file. content writes the plot to the device
+    content = function(file) {
+      
+      
+      if(length(input$ListOfExperience)==0) 
+      {
+        foundfiles <- filenames(envGlobal$path)
+      }
+      else
+      {
+        foundfiles <- input$ListOfExperience
+      }
+      nomFichier<-c()
+      if( !is.null(foundfiles))
+      {
+        # for each experiemnt
+        for(i in 1:length(foundfiles))
+        {
+          fich <- gsub("results.","",foundfiles[i])
+          fich <- gsub("_.*","",fich)
+          nomFichier <- c(nomFichier, fich)
+        }
+      }
+      
+      if(length(foundfiles)>0)
+      {
+        allPossiblePlots <- getAllPlots(digested.results = mergeResults(list.results = list.of.learners$list.results[nomFichier],
+                                                                        sparsity = NULL,
+                                                                        penalty = input$Penaltyid,
+                                                                        penalty_by_kfold = FALSE)
+        )
+        if(input$type == "pdf")
+        {   
+          pdf(file = file) # open the pdf device
+          
+          for(i in names(allPossiblePlots))
+            plot(allPossiblePlots[[i]])
+          
+          dev.off()
+        }
+        else
+        {
+          fs <- c()
+          tmpdir <- tempdir()
+          setwd(tempdir())
+          for (i in names(allPossiblePlots)) {
+            path <- paste0(i,".png")
+            fs <- c(fs, path)
+            png(path)
+            plot(allPossiblePlots[[i]])
+            dev.off()
+          }
+          zip(zipfile=file, files=fs)
+          #dev.off()
+        }
+
+        showNotification(ui = "To download the current plot only, click on the photograph icon near the plot",
+                         closeButton = TRUE,
+                         duration = NULL,
+                         session = session)
+      }
+      else
+      {
+        if(input$type == "png")
+        {  png(filename = file,
+               height = 200,
+               width = 200) # open the png device
+          renderText(expr = {"There seem to be a problem, NO DATA FOUND"})
+        }
+        else
+        {
+          pdf(file = file) # open the pdf device
+          renderText(expr = {"There seem to be a problem, NO DATA FOUND"})
+        }
+        dev.off()  # turn the device off
+        showNotification(ui =  "Make sure you have your experiences'files in the system",
+                         closeButton = TRUE,
+                         duration = NULL,
+                         session = session)
+      }
+    } 
+  )
+  
+}) # end of server function

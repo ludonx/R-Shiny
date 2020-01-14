@@ -1,0 +1,508 @@
+### IHM pour faire des requêtes
+
+
+output$ui_interface_des_requetes_sur_les_definitions_Les_Genes<-renderUI({
+  req(input$ActionValider_definition_Les_Genes)
+  test<-testOrdre()
+  if(test==F){
+    
+  }else{
+    listeCollection = globalInformation$modules$Catalogue$defSelected
+    nbMax<-length(listeCollection)
+    if(nbMax){
+      #cat("\n***************** ",nbMax)
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = "Création des interfaces de requêtages", value = 0)
+      progress$inc(1/2)
+      #################################################################################################
+      #################################################################################################
+      collection_selected_list <- lapply(1:(nbMax+1), function(i) {
+        if(i==nbMax+1){
+          div(
+            fluidRow(
+              column(5,""
+                     # box(status = "primary",
+                     #     #solidHeader = TRUE,
+                     #     title = span( icon("sd-card"),paste0("")),
+                     #     width = 12,
+                     #     fluidPage(
+                     #       #column(6,
+                     #       textInput(inputId ="textinput_name_list_data_save_Les_Genes" ,
+                     #                 label ="*Nom du fichier" ,
+                     #                 value ="list_Catalogue_variables_i" ),
+                     #       #),#end column
+                     #       #column(6,
+                     #       actionButton(inputId = paste0("ActionSave_list_data_Les_Genes"),
+                     #                    label = "Sauvegarder",
+                     #                    icon("file-download"),
+                     #                    style="color: #fff; background-color: #3c936f; border-color: #3c936f"
+                     #       )
+                     #       #)#end column
+                     #     )#end fluidPage
+                     #     
+                     # )#end box
+              ),#end column
+              column(2,""),
+              column(5,
+                     box(status = "danger",
+                         #solidHeader = TRUE,
+                         title = span( icon("exclamation-triangle"),paste0("")),
+                         width = 12,
+                         actionButton(inputId = paste0("ActionQuickSave_requetes_Les_Genes"),
+                                      label = "Exécution Rapide",
+                                      icon("fast-forward"),
+                                      style="color: #fff; background-color: #a81f1f; border-color: #a81f1f"
+                         )
+                         
+                         
+                     )#end box
+              )#end column
+            ),#end fluidRow
+          fluidRow(
+            column(6,
+                   box(status = "danger",
+                       #solidHeader = TRUE,
+                       title = span( icon("cart-plus"),paste0(" Sauvegarder ma requête")), 
+                       width = 12,
+                       fluidPage(
+                         
+                              box(status = "primary",
+                                  #solidHeader = TRUE,
+                                  #title = span( icon("exclamation-triangle"),paste0("")),
+                                  width = 12,
+                                  textInput(inputId ="textinput_name_ma_requete_Les_Genes" ,
+                                            label ="*Saisir le nom de la requête :" ,
+                                            value ="ma_req1" ),
+                                  textInput(inputId ="textinput_description_ma_requete_Les_Genes" ,
+                                            label ="*Saisir une description de ma :" ,
+                                            value ="cette requête permet de ..." ),
+                                  textInput(inputId ="textinput_type_ma_requete_Les_Genes" ,
+                                            label ="*Saisir le type de la requête :" ,
+                                            value ="type1" ),
+                                  
+                                  textInput(inputId ="textinput_name_list_data_save_Les_Genes" ,
+                                            label ="*Nom du fichier" ,
+                                            value ="list_Catalogue_variables_i" ),
+                                 
+                                  
+                                  fluidRow(
+                                    column(6,
+                                           actionButton(inputId = paste0("ActionSave_ma_requete_Les_Genes"),
+                                                        label = "Enregistrer ma requête",
+                                                        icon("cart-arrow-down"),
+                                                        style="color: #fff; background-color: #3c936f; border-color: #3c936f"
+                                           )
+                                    ),#end column
+                                    column(6,
+                                           uiOutput("uiERROR_ActionSave_ma_requete_Les_Genes")
+                                    )#end column
+                                  )#end fluidRow
+                              ),#end box
+                              box(status = "success",
+                                  #solidHeader = TRUE,
+                                  #title = span( icon("exclamation-triangle"),paste0("")),
+                                  width = 12,
+                                  div(style = 'overflow-x: scroll',dataTableOutput("data_frame_ma_requete_Les_Genes")),
+                                  br(),
+                                  fluidRow(
+                                    column(6,""
+                                           # actionButton(inputId = paste0("ActionSave_modification_ma_requete_Les_Genes"),
+                                           #              label = "Modifier & Enregistrer",
+                                           #              icon("cart-arrow-down"),
+                                           #              style="color: #fff; background-color: #3c936f; border-color: #3c936f"
+                                           # )
+                                    ),#end column
+                                    column(6,
+                                           uiOutput("uiMessage_Save_modification_ma_requete_Les_Genes")
+                                    )#end column
+                                  )#end fluidRow
+                                  
+                              )#end box
+
+                       )#end fluidPage
+                       
+                   )#end box
+            ),#end column
+            column(6,
+                   box(
+                     title = span( icon("database"),paste0(" Résultat de ma requête")), 
+                     status = "success",
+                     #solidHeader = TRUE,
+                     collapsible = TRUE,collapsed = F,
+                     width = 12,
+                     fluidPage(
+                       uiOutput("uiselect_dataTable_resultat_def_catalog_Les_Genes"),
+                       div(style = 'overflow-x: scroll',dataTableOutput('dataTable_resultat_def_catalog_Les_Genes'))#end div
+                     )#end fluidPage
+                     
+                   )#end box
+            )#end column
+          )#end fluidRow
+          
+          )#end div
+        }else{
+          # ERROR_MGS_ActionSave_data_frame_requete_Les_Genes<-paste0("ERROR_MGS_ActionSave_data_frame_requete_Les_Genes",lc)
+          # output[[ERROR_MGS_ActionSave_data_frame_requete_Les_Genes]]<-renderText({
+          #   paste("")
+          # })
+          box(
+            title = paste0("(",i,") Requête sur : ",listeCollection[i]), status = "success", solidHeader = TRUE,
+            collapsible = TRUE,collapsed = F, width = 12, 
+            fluidRow(
+              column(5,
+                     # box(
+                     #   status = "success", #solidHeader = TRUE,
+                     #   collapsible = F, width = 12,
+                       fluidRow(
+                         column(3,uiOutput(paste0("uiConfig_ma_requete_select_variable_Les_Genes",listeCollection[i]))),
+                         column(5,uiOutput(paste0("uiConfig_ma_requete_condition_Les_Genes",listeCollection[i]))),
+                         column(4,
+                                actionButton(inputId = paste0("ActionAjouter_une_contrainte_Les_Genes",listeCollection[i]),
+                                             label = "Ajouter une condition",
+                                             icon("plus-circle"), 
+                                             style="color: #fff; background-color: #337ab7; border-color: #2e6da4"
+                                             
+                                )#end actionButton
+                         )#end column
+                       ),#end fluidRow
+                     box(width = 12,
+                         div(
+                           style = "height:100px; overflow-y: scroll;overflow-x: scroll;",
+                           uiOutput(paste0("uima_requete_json",listeCollection[i]))
+                         )
+                       
+                       
+                     ),#end box
+                     uiOutput(paste0("text_Config_ma_requete_resultat_Les_Genes",listeCollection[i]))
+  
+                     #)#end box
+                     
+              ),#end column
+              column(3, 
+                     box(
+                         status = "primary", #solidHeader = TRUE,
+                         collapsible = F, width = 12,
+                       uiOutput(paste0("uiMes_contraintes_Les_Genes",listeCollection[i])),
+                       fluidRow(
+                         column(6,
+                                checkboxInput(inputId = paste0("checkboxInput_Mes_contraintes_Les_Genes",listeCollection[i]),
+                                              label ="'OR' condition" ,
+                                              value = F)
+                                ),#end column
+                         column(6,""
+                                # actionButton(inputId = paste0("ActionAjouter_une_sous_requete_Les_Genes",listeCollection[i]),
+                                #              label = NULL,
+                                #              icon("plus-square"), 
+                                #              style="color: #fff; background-color: #0a51a3; border-color: #0a51a3"
+                                #              
+                                # )#end actionButton
+                                )
+                       )
+                       
+                       
+                     )#end box
+              ),#end column
+              column(4, 
+                     
+                     box(
+                       status = "success", #solidHeader = TRUE,
+                       collapsible = F, width = 12,
+                       uiOutput(paste0("uiSave_data_frame_requete_Les_Genes",listeCollection[i]))
+                       
+                     ),#end box
+                     
+                     fluidRow(
+                       column(8,""
+                             
+                       ),#end column
+                       column(4,
+                              actionButton(inputId = paste0("ActionAjouter_une_sous_requete_Les_Genes",listeCollection[i]),
+                                           label = "New",
+                                           icon("plus-square"),
+                                           style="color: #fff; background-color: #0a51a3; border-color: #0a51a3"
+
+                              )#end actionButton
+                       )
+                     )#end fluidRow
+                                  
+              )#end column
+             
+            )#end fluidRow
+          )#end box
+        }
+        
+      })
+      #################################################################################################
+      #################################################################################################
+      progress$inc(1/2)
+      # Convert the list to a tagList - this is necessary for the list of items
+      # to display properly.
+      #################################################################################
+      #################################################################################
+    
+        
+      #################################################################################
+      #################################################################################
+      #collection_selected_list<-append(collection_selected_list,boxValider)
+      do.call(tagList, collection_selected_list)
+    }
+  }
+  
+})#end ui_interface_des_requetes_sur_les_definitions_Les_Genes
+
+#############################################################################################
+###############################
+#############################################################################################
+
+
+observe({
+  req(input$ActionValider_definition_Les_Genes)
+  # @ludo bug, pour faire simple il faut respecte un certains ordre qui n'est pas forcement implicite
+  # donc cette ligne permet de respecter l'ordre
+  # permet d'adapter les box au valeur des data frame correspondant
+  req(input$select_def_catalog_Les_Genes) ## 1heure pour trouver la solution
+  
+  listeCollection = globalInformation$modules$Catalogue$defSelected
+  db_listeCollection = globalInformation$modules$Catalogue$databaseDefSelected
+  #globalInformation$globalDatabase
+  #cat("\n* uisRequetes **",length(listeCollection))
+  #for (i in 1:length(listeCollection)) {
+  nbrMaxCollection<-length(listeCollection)
+  if(nbrMaxCollection){
+  uisRequetes<-lapply(1:nbrMaxCollection,function(indiceCollection){
+    lc<-listeCollection[indiceCollection]
+    db_lc<-db_listeCollection[indiceCollection]
+    #cat("\n* uisRequetes **",lc)
+    #############################################################################################
+    ##############################   DEBUT LAPPLY   #############################################
+    
+    uiConfig_ma_requete_select_variable_Les_Genes<-paste0("uiConfig_ma_requete_select_variable_Les_Genes",lc)
+    uiConfig_ma_requete_condition_Les_Genes<-paste0("uiConfig_ma_requete_condition_Les_Genes",lc)
+    ActionAjouter_une_contrainte_Les_Genes<-paste0("ActionAjouter_une_contrainte_Les_Genes",lc)
+    uiSave_data_frame_requete_Les_Genes<-paste0("uiSave_data_frame_requete_Les_Genes",lc)
+    uiMes_contraintes_Les_Genes<-paste0("uiMes_contraintes_Les_Genes",lc)
+    
+    ActionAjouter_une_sous_requete_Les_Genes<-paste0("ActionAjouter_une_sous_requete_Les_Genes",lc)
+    #############
+    #################
+    #########################################################################################################
+    #################
+    #############
+    Config_ma_requete_select_variable_Les_Genes<-paste0("Config_ma_requete_select_variable_Les_Genes",lc)
+    Config_ma_requete_condition_text_Les_Genes<-paste0("Config_ma_requete_condition_text_Les_Genes",lc)
+    Config_ma_requete_condition_list_Les_Genes<-paste0("Config_ma_requete_condition_list_Les_Genes",lc)
+    uiConfig_ma_requete_condition_slidernumeric_Les_Genes<-paste0("uiConfig_ma_requete_condition_slidernumeric_Les_Genes",lc)
+    #############
+    #################
+    #########################################################################################################
+    #################
+    #############
+    select_Mes_contraintes<-paste0("select_Mes_contraintes",lc)
+    ActionValider_Config_ma_requete<-paste0("ActionValider_Config_ma_requete",lc)
+    text_Config_ma_requete_resultat<-paste0("text_Config_ma_requete_resultat",lc)
+    #############
+    #################
+    #########################################################################################################
+    #################
+    #############
+    textinput_name_data_frame_Les_Genes<-paste0("textinput_name_data_frame_Les_Genes",lc)
+    ActionSave_data_frame_requete_Les_Genes<-paste0("ActionSave_data_frame_requete_Les_Genes",lc)
+    
+   
+    myCollectionDataSelected<-findLimit(db_lc,str_sub(lc,1,str_length(lc)-1),20)
+    ##### select
+    output[[uiConfig_ma_requete_select_variable_Les_Genes]]<-renderUI({
+      #req()
+      selectInput(inputId =Config_ma_requete_select_variable_Les_Genes,
+                  #label ="Selectioné une colonnes pour la requête",
+                  label = NULL,
+                  choices =colnames(myCollectionDataSelected))
+    })
+    ##### IHM condition
+    output[[uiConfig_ma_requete_condition_Les_Genes]]<-renderUI({
+      #req(input$ActionValider_definition_Les_Genes)
+      req(input[[Config_ma_requete_select_variable_Les_Genes]])
+      
+      
+      collectionName<-str_sub(lc,1,str_length(lc)-1)
+      columnName<-input[[Config_ma_requete_select_variable_Les_Genes]]
+      
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Vérification du type de la colonne : ",collectionName), value = 0)
+      nbr<-2
+      progress$inc(1/nbr)
+      ### normalement on retourne une seul ligne
+      infoColonneSelected<-
+        findQuery(globalInformation$globalDatabase,
+                  globalInformation$typeColumnCollections,
+                  myQueryConstraintN(
+                    list(
+                      myConstraintChaineN("collection",collectionName),
+                      myConstraintChaineN("column",columnName)
+                    )
+                    
+                  ))
+      progress$inc(1/nbr)
+      # interface par defaut 
+      if(nrow(infoColonneSelected)<=0){infoColonneSelected[1,"type"] <-"vide"}
+      #class(myCollectionData()[,input$Config_ma_requete_select_variable_Les_Genes])
+      if(infoColonneSelected[1,"type"] == "character"){
+        textInput(inputId =Config_ma_requete_condition_text_Les_Genes ,
+                  #label="Saisir la valeur recherchée",
+                  label = NULL,
+                  placeholder  = "Entrez une valeur ou un début de valeur...")
+      }else if(infoColonneSelected[1,"type"] == "list"){
+        textAreaInput(inputId =Config_ma_requete_condition_list_Les_Genes ,
+                      #label="Saisir la liste de valeur recherchée",
+                      label = NULL,
+                      placeholder  = "aaa,bbb,ccc....")
+      }else if(infoColonneSelected[1,"type"]  %in% c("numeric","integer")){
+        min<-infoColonneSelected[1,"min"]
+        max<-infoColonneSelected[1,"max"]
+        step<-1
+        if(max<1)step<-0.1
+        
+        sliderInput(inputId =uiConfig_ma_requete_condition_slidernumeric_Les_Genes ,
+                    #label = "Intervalle des valeurs possible" ,
+                    label = NULL,
+                    min,
+                    max,
+                    value =c(0,max/2),
+                    step =step )
+        
+      }
+      # else if(infoColonneSelected[1,"type"] =="vide"){
+      # 
+      # }else{
+      # 
+      # }
+    })
+    
+    
+    observeEvent(input[[ActionAjouter_une_sous_requete_Les_Genes]],{
+   
+      id_row_selected <- input$data_frame_select_def_catalog_Les_Genes_rows_selected
+      
+      condi<-globalInformation$modules$Catalogue$dataFrameDefinition["name"]== str_sub(lc,1,str_length(lc)-1)
+      
+      
+      
+      x <- vector(mode = "integer",length = length(id_row_selected))
+      x <- id_row_selected
+      data <-globalInformation$modules$Catalogue$dataFrameDefinition
+      lc_it <- 0
+      # PROBLEME : cette observeEvent est execute deux fois a cause de la modification de : 
+      # globalInformation$modules$Catalogue$dataFrameDefinition[lc_it,"duplicate"] <- data[lc_it,"duplicate"]
+      # mais si ont fait :
+      # globalInformation$modules$Catalogue$dataFrameDefinition[1,"duplicate"]<-5
+      # elle est executé 1 fois
+      # et lorque je clique sur le bouton : click(id="ActionValider_definition_Les_Genes") et est executé a nouveau 2 fois
+      # ce qui fait 4 éxécution au lieux d'1
+      for(it in 1:nrow(data))
+      {#cat("\n---lc it == ", it,"--",data[it,"name"],"-- lc ",lc)
+        if(data[it,"name"]==str_sub(lc,1,str_length(lc)-1))
+        {
+          # SOLUTION au lieu de faire +1 je vais faire +1/4 en attendant de comprendre pourquoi
+          # sauf que le dernier +1/4 de cette boucle n'est pas pris en compte 
+          data[it,"duplicate"] <- data[it,"duplicate"] +1/4
+          # cat("\n--",data[it,"duplicate"] +1/4)
+          if(data[it,"duplicate"]>9)data[it,"duplicate"] <- 9 
+          # car ,str_length(lc)-1 si 10 -> 10 chiffre donc -2 au lieu de -1
+          #une solution serait de remplacer le str_length(lc)-1 par un petit fonction qui fait -x en fonction de la longueur du nombre
+          lc_it <- it
+          break
+        }
+      }
+      #cat("\n--- END\n")
+      if(lc_it >0)
+      {
+        # plutot +1/4 manquant : je ne sais pas pourquoi
+        globalInformation$modules$Catalogue$dataFrameDefinition[lc_it,"duplicate"] <- data[lc_it,"duplicate"] +1/4
+        # cat("\nend:",data[lc_it,"duplicate"])
+        # cat("\nend:",data[lc_it,"duplicate"]+1/4)
+      }
+      #globalInformation$modules$Catalogue$dataFrameDefinition[2,"duplicate"]<-2
+      #globalInformation$modules$Catalogue$dataFrameDefinition[condi,"duplicate"] <- globalInformation$modules$Catalogue$dataFrameDefinition[condi,"duplicate"]+1
+      
+      selectRows(proxy = proxy_data_frame_select_def_catalog_Les_Genes,
+                selected = x)
+
+      reset(id=ActionAjouter_une_sous_requete_Les_Genes)
+      click(id="ActionValider_definition_Les_Genes")
+    })
+    
+    
+    ################################   FIN LAPPLY  ##############################################
+    #############################################################################################
+  })#end lapply
+  # Convert the list to a tagList - this is necessary for the list of items
+  # to display properly.
+  do.call(tagList, uisRequetes)
+  
+  }#end if(nbrMaxCollection){
+ 
+})#end observerEvent
+
+
+
+# observe({
+#   req(input[[ActionAjouter_une_sous_requete_Les_Genes]])
+#   if(length(globalInformation$modules$Catalogue$defSelected<3)){
+#     old_list<-globalInformation$modules$Catalogue$defSelected
+#     nbr_old_list<-length(globalInformation$modules$Catalogue$defSelected)
+#     
+#     old_list_db<-globalInformation$modules$Catalogue$databaseDefSelected
+#     nbr_old_list_db<-length(globalInformation$modules$Catalogue$databaseDefSelected)
+#     
+#     new_list<-list()
+#     new_list_db<-list()
+#     
+#     # on insert la nouvelle collection dans la liste en respectant l'ordre
+#     if(nbr_old_list==nbr_old_list_db)
+#     {
+#       for(i in 1:nbr_old_list)
+#       {
+#         #old_lc<-old_list[i]
+#         if(as.character(lc)==old_list[i])
+#         {
+#           collection_name<-str_sub(lc,1,str_length(lc)-1)
+#           collection_id<-str_sub(lc,str_length(lc)-1,str_length(lc))
+#           
+#           new_collection_id<-as.numeric(collection_id)+1
+#           new_collection_name<-paste0(collection_name,as.character(new_collection_id))
+#           
+#           
+#           
+#           new_list<-append(new_list,new_collection_name)
+#           new_list_db<-append(new_list_db,old_list_db[i])
+#         }
+#         new_list<-append(new_list,old_list[i])
+#         new_list_db<-append(new_list_db,old_list_db[i])
+#       }
+#     }else{
+#       cat("\nnbr_old_list!=nbr_old_list_db")
+#     }
+#     
+#     globalInformation$modules$Catalogue$defSelected<-new_list
+#     globalInformation$modules$Catalogue$databaseDefSelected<-new_list_db
+#     
+#     # globalInformation$modules$Catalogue$defSelected<-
+#     #   append(globalInformation$modules$Catalogue$defSelected,paste0(globalInformation$modules$Catalogue$defSelected[1],"1"))
+#     # globalInformation$modules$Catalogue$databaseDefSelected<-
+#     #   append(globalInformation$modules$Catalogue$databaseDefSelected,paste0(globalInformation$modules$Catalogue$databaseDefSelected[1],"1"))
+#     
+#     cat('\n',length(globalInformation$modules$Catalogue$defSelected),'----',length(new_list))
+#     cat('\n',length(globalInformation$modules$Catalogue$databaseDefSelected),'----',length(new_list_db))
+#   }
+#   cat('\n',length(globalInformation$modules$Catalogue$defSelected),'----')
+#   cat('\n',length(globalInformation$modules$Catalogue$databaseDefSelected),'----')
+#   
+# })
+
+

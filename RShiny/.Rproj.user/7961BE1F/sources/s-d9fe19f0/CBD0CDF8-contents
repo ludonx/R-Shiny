@@ -1,0 +1,7 @@
+#dataTable_user
+serverPatient_analyses<-
+  function(input, output, session,globalInformation){
+   
+    
+    
+  }

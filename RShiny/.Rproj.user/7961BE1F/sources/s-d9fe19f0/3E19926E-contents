@@ -1,0 +1,38 @@
+#dataTable_user
+servertest_Blast<-
+  function(input, output, session,globalInformation){
+    
+    # fata_file_test_Blast ----
+    observe({
+      req(input$fasteFile)
+      
+      x<-read.fasta(input$fasteFile$datapath) # c'est une liste
+      myfile<-renderPrint({x})
+      
+      updateTextAreaInput(
+        session=session,
+        inputId = "fata_file_test_Blast",
+        value = myfile() # affichage sous forme de liste
+        #value = read_file(input$fasteFile$datapath)
+      )
+    })
+    
+    
+    # ActionValider_Blast_cmd_test_Blast ----
+    observeEvent(input$ActionValider_Blast_cmd_test_Blast,{
+      system(input$Blast_cmd_test_Blast)
+      cat(input$Blast_cmd_test_Blast)
+      
+      Blast_file_result<-"/home/ltekam/GIT_LAB_test/iogoldg/RShiny/test_Blast.out"
+      
+      output$Blast_result_test_Blast<- renderText({read_file(file = Blast_file_result)})
+      updateTextAreaInput(
+        session=session,
+        inputId = "Blast_result_text_test_Blast",
+        value = read_file(file = Blast_file_result)#utiliser plutot read blast
+      )
+    })
+    
+    
+    
+  }

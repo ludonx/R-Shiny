@@ -1,0 +1,10 @@
+[
+  {
+    "name":"Requetes_et_visualisation/Donnees_des_projets/Selection_de_projets",
+    "ui":"tabItem_Selection_de_projets",
+    "server":"serverSelection_de_projets(input, output, session,globalInformation)",
+    
+    
+    "fileToSource":["serverSelection_de_projets.R","uiSelection_de_projets.R"]
+  }
+]

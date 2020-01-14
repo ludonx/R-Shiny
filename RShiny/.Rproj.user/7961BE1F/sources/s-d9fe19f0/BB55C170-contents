@@ -1,0 +1,35 @@
+tabItem_Sauvegarde<-
+  tabItem(
+    tabName = "Sauvegarde",
+    h5("> Sauvegarde"),
+    
+    #fluidR
+    # Box Sauvegarde Génerale ---------------------------------------------------------
+    box(
+      title = "Sauvegarde Génerale",
+      solidHeader = TRUE,
+      
+      sliderInput("sliderInput_save_session_time",
+                  "Intervalle de sauvegarder des données (minutes) :",
+                  min =1 ,
+                  max =60*2 ,# 1heure * 2
+                  value =5 ,
+                  step =1 )
+      
+    ),
+    # Box Sauvegarde Ma_console ---------------------------------------------------------
+    box(
+      title = 'Sauvegarde Module "Ma Console"',
+      solidHeader = TRUE,
+      
+      sliderInput("sliderInput_save_session_time_Ma_console",
+                  "Intervalle de sauvegarder des données (minutes) :",
+                  min =1 ,
+                  max =60*2 ,# 1heure * 2
+                  value =5 ,
+                  step =1 )
+      
+    )
+    
+  )#end tabItem
+

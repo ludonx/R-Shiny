@@ -1,0 +1,25 @@
+[
+  {
+    "database":"iogold",
+    "catalog" : "",
+    "version":"",
+    "date":"30_08",
+    
+    "def_collection":"def_ko_definition_KEGGdb_",
+    "common_json_file_name":"ko.definitions",
+    "path":"/data/db/iogold/microbiome/0.json.tables.ICGgenesMGS.MongoDB/"
+    
+  },
+  {
+    "database":"iogold",
+    "catalog" : "cat_hs9.9_test_",
+    "version":"v5",
+    "date":"",
+    
+    "def_collection":"def_mgstaxonomy_",
+    "common_json_file_name":"CAG5",
+    "path":"/data/db/iogold/microbiome/0.json.tables.ICGgenesMGS.MongoDB/"
+    
+  }
+  
+]

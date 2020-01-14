@@ -1,0 +1,16 @@
+# req_mb_ab_biotin <- readRDS("/home/ltekam/GIT_LAB_test/iogoldg/RShiny/user_data/root@g.c/current_session/Catalogue/cat_hs9.9_v1/req_abundance_genes_biotin.rds")
+# req_mb_clin <- readRDS("/home/ltekam/GIT_LAB_test/iogoldg/RShiny/user_data/root@g.c/current_session/Catalogue/cat_hs9.9_v1/req_sample_time_T0_or_M12.rds")
+# 
+# 
+# ab <- req_mb_ab_biotin$listSaveDataFrame$obs_genes_cat_hs9.9_v1_Microbaria
+# clin <- req_mb_clin$listSaveDataFrame$obs_samplemetadata_v1_Microbaria
+# 
+# match(rownames(clin), colnames(ab))
+
+
+system("module load blast-2.6.0+")
+system("blastn -query /data/projects/iogold/analyses/2.BlastTest/eco.nt.fasta -db /data/db/biobank/catalogue/hs_9.9/original_files/IGC.fa -out /data/projects/iogold/analyses/2.BlastTest/eco.nt.fasta.blast.out") ##Normal output
+system("blastn -query /data/projects/iogold/analyses/2.BlastTest/eco.nt.fasta -db /data/db/biobank/catalogue/hs_9.9/original_files/IGC.fa -outfmt 7 -out /data/projects/iogold/analyses/2.BlastTest/eco.nt.fasta.blast_tabular.out") ##Tabular output
+system("blastn -help")
+
+system("blastn -query /data/projects/iogold/analyses/2.BlastTest/eco.nt.fasta -db /data/db/biobank/catalogue/hs_9.9/original_files/IGC.fa  -out /home/ltekam/GIT_LAB_test/iogoldg/RShiny/blast.out -outfmt 6")

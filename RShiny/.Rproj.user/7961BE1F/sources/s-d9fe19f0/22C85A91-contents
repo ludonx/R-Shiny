@@ -1,0 +1,55 @@
+[
+  {
+    "server_id" : "portal",
+    "activated":0,
+    "default_user_email":"root@g.c",
+    "default_user_pwd":"root",
+    "language" : "en",
+    
+    "workDirectory":"/share/apps/iogold/iogoldapp/user_data",
+    "appDirectory":"/share/apps/iogold/iogoldapp",
+    "pathToModule":"/share/apps/iogold/iogoldapp/modules/",
+
+    "databases":["iogold","iogold_microbaria"],
+    "pwd":"rT@g4CkYkaTRS=%8",
+    "host" : "gpu1.integromics.fr:27017",
+    "username" : "shiny", 
+    
+    "globalDatabase" : "iogold",
+    "usersCollection":"users",
+    "usersCollectionDelete":"usersDelete",
+    "projectsCollections" : "projects",
+    "mainCollections" : "collections",
+    "catalogCollections" : "catalog",
+    "jointuresCollections" : "jointures",
+    "moduleCoverageCollections":"module_coverage_KEGGdb_5_19",
+    "typeColumnCollections":"typeColumn"
+  },
+  {
+    "server_id" : "local",
+    "activated":1,
+    "default_user_email":"root@g.c",
+    "default_user_pwd":"root",
+    "language" : "en",
+    
+    "workDirectory":"/home/ltekam/GIT_LAB_test/iogoldg/RShiny/user_data",
+    "appDirectory":"/home/ltekam/GIT_LAB_test/iogoldg/RShiny",
+    "pathToModule":"/home/ltekam/GIT_LAB_test/iogoldg/RShiny/modules/",
+
+    "databases":["iogold","iogold_microbaria"],
+    "pwd":"rT@g4CkYkaTRS=%8",
+    "host" : "gpu1.integromics.fr:27017",
+    "username" : "shiny", 
+    
+    "globalDatabase" : "iogold",
+    "usersCollection":"users",
+    "usersCollectionDelete":"usersDelete",
+    "projectsCollections" : "projects",
+    "mainCollections" : "collections",
+    "catalogCollections" : "catalog",
+    "jointuresCollections" : "jointures",
+    "moduleCoverageCollections":"module_coverage_KEGGdb_5_19",
+    "typeColumnCollections":"typeColumn"
+  }
+  
+]

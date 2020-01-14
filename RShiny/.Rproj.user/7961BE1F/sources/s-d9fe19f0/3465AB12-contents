@@ -1,0 +1,9 @@
+[
+  {
+    "name":"Connexion",
+    "ui":"tabItem_Connexion",
+    "server":"serverConnexion(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Connexion',tabName = 'Connexion',icon = icon('chalkboard-teacher'))",
+    "fileToSource":["serverConnexion.R","uiConnexion.R"]
+  }
+]

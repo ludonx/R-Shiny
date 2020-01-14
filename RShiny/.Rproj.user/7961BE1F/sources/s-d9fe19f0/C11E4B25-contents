@@ -1,0 +1,1 @@
+[{"folderName":"LULLM","ui":"tabItem_LULLM","server":"serverLULLM(input, output, session,globalInformation)","menu":"menuItem(text='LULLM',tabName = 'LULLM',icon = icon('angle-double-right'))","priority":0,"rang":0,"menu_en":"menuItem(text='LULLM',tabName = 'LULLM',icon = icon('angle-double-right'))"}]

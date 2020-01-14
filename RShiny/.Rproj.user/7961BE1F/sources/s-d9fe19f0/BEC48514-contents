@@ -1,0 +1,619 @@
+
+
+#dataTable_user
+serverLes_Genes<-
+  function(input, output, session,globalInformation){
+    #######################################
+    ### serverLes_Genes_FlexBox.R  #Menu
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Requetes_et_visualisation/Donnees_Metagenomique/Faire_des_requetes/Les_Genes"),
+        "serverLes_Genes_FlexBox.R"),
+      local = TRUE)$value
+    ###########################################################################################################################
+    ###########################################################################################################################
+    
+    ###############################################################
+    ################# message d'aide ##############################
+    output$uiMessage_select_def_catalog_Les_Genes<-renderText({
+      uiMessage_select_def_catalog_Les_Genes()
+    })
+    output$uiMessage_liste_colonnes_def_catalog_Les_Genes<-renderText({
+      uiMessage_liste_colonnes_def_catalog_Les_Genes()
+    })
+    # output$uiMessage_ResultatConsoleR_Les_Genes<-renderText({
+    #   uiMessage_ResultatConsoleR_Les_Genes()
+    # })
+    output$uiMessage_Save_modification_ma_requete_Les_Genes<-renderText({
+      uiMessage_Save_modification_ma_requete_Les_Genes()
+    })
+    
+    ########## selectionnee un catalogue ####################
+    #########################################################
+    ### on recupere la liste des catalogues
+    dataFrameCatalog<-reactive({
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = "Récupération de la liste des catalogues", value = 0)
+      progress$inc(1/2)
+      data<-findAll(globalInformation$globalDatabase,globalInformation$catalogCollections)
+      
+      progress$inc(1/2)
+      return(data)
+    })
+    
+    ### on selection un catalog
+    output$uiselect_catalog_Les_Genes<-renderUI({
+      choices = dataFrameCatalog()[,"name"]
+      selectInput(inputId ="select_catalog_Les_Genes" ,
+                  label ="Sélectionner un catalogue : " ,
+                  choices = choices,
+                  selected =choices[1],
+                  multiple = F)
+    })
+    
+    ### on affiche quelque information sur le catalogue selectionner
+    output$uiInfo_catalog_Les_Genes<-renderText({
+      req(input$select_catalog_Les_Genes)
+      
+      # mydataFrameCatalog_row_selected<-data.frame()
+      # for(i in 1:nrow(dataFrameCatalog())){
+      #   if(dataFrameCatalog()[i,"name"]==input$select_catalog_Les_Genes){
+      #     mydataFrameCatalog_row_selected<-dataFrameCatalog()[i,]
+      #   }
+      # }
+      
+      mydataFrameCatalog_row_selected<-dataFrameCatalog()[dataFrameCatalog()["name"]==input$select_catalog_Les_Genes,]
+      decrireCatalogue(mydataFrameCatalog_row_selected) ## fonctionUtile
+      
+    })
+    ###########################################################################################################################
+    ###########################################################################################################################
+    
+    
+    
+    ###########  : Définitions et Modules du catalogue
+    #############################################################################################
+    
+    #### recuperation des modules du catalogue selectionner
+    dataFrameDefinition<-reactive({
+      req(input$select_catalog_Les_Genes)
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Récupération des définitions du catalogues : ", input$select_catalog_Les_Genes), value = 0)
+      progress$inc(1/2)
+      #data<-findAll(globalInformation$globalDatabase,globalInformation$projectsCollections)
+      dataFrameDefinition<-
+        findQuery(
+          globalInformation$globalDatabase,
+          globalInformation$collections,
+          myQueryConstraintN(
+            list(
+              myConstraintUnique("catalog",input$select_catalog_Les_Genes),
+              myConstraintUnique("type","def")
+            )
+          )
+        )
+      progress$inc(1/2)
+      return(dataFrameDefinition)
+      
+    })
+    ### on selection une ou plusieurs definition
+    output$uiselect_def_catalog_Les_Genes<-renderUI({
+      req(input$select_catalog_Les_Genes)
+      choices=c()
+      if(nrow(dataFrameDefinition())>0){
+        choices = dataFrameDefinition()[,"name"]
+      }
+      
+      selectInput(inputId ="select_def_catalog_Les_Genes" ,
+                  label =paste0('Les définitions du catalogue "',input$select_catalog_Les_Genes,'" sont :') ,
+                  choices = choices,
+                  
+                  multiple = T)
+    })
+    
+    ################################################################################
+    ################################################################################
+    ### on recupere la liste des colonnes de la definition sélectionnée
+    # myCollectionData<-reactive({
+    #   req(input$select_def_catalog_Les_Genes)
+    #   
+    #   collectionName<-input$select_def_catalog_Les_Genes[length(input$select_def_catalog_Les_Genes)]
+    #   # Create a Progress object
+    #   progress <- shiny::Progress$new()
+    #   # Make sure it closes when we exit this reactive, even if there's an error
+    #   on.exit(progress$close())
+    #   progress$set(message = paste0("Récupération de la liste des colonnes de : ",collectionName), value = 0)
+    #   nbr<-2
+    #   progress$inc(1/nbr)
+    #   mydata<-findLimit(globalInformation$globalDatabase,collectionName,20)
+    #   progress$inc(1/nbr)
+    #   
+    #   return(mydata)
+    #   
+    # })
+    # ### vue sur les colonnes de la definuiotion sélectionnée
+    # output$uiliste_colonnes_def_catalog_Les_Genes<-renderUI({
+    #   req(input$select_def_catalog_Les_Genes)
+    #   collectionName<-input$select_def_catalog_Les_Genes[length(input$select_def_catalog_Les_Genes)]
+    #   choices = colnames(myCollectionData())
+    #   #disabled( 
+    #     selectInput(inputId ="liste_colonnes_def_catalog_Les_Genes" ,
+    #               label =paste0('les colonnes de "',collectionName,'" sont : ') ,
+    #               choices = choices,
+    #               selected = choices,
+    #               multiple = T)
+    #   #  )€end disabled
+    #   
+    # })
+    ### guide su l'ordre des collections  à sélectioner
+    output$uiguide_select_def_catalog_Les_Genes<-renderText({
+      req(input$select_def_catalog_Les_Genes)
+      
+      
+      listDef<-input$select_def_catalog_Les_Genes
+      nbr<-length(listDef)
+      last_def<-listDef[nbr]
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Recherche des définitions compatible : "), value = 0)
+      progress$inc(1/2)
+      def_copatible_with_last_def<-findQuery(globalInformation$globalDatabase,
+                globalInformation$jointuresCollections,
+                myQueryChaineN("nameCollectionA",last_def))
+      progress$inc(1/2)
+      collectionNames<-listDef ## ou ""
+      if(nrow(def_copatible_with_last_def)>0){
+        collectionNames<-def_copatible_with_last_def[,"nameCollectionB"]
+      }
+      
+      
+      collectionNames<-setdiff(collectionNames,listDef)
+      n<-length(collectionNames)
+      guide<-paste0("<b>il y a ",n," définition(s) compatible avec :  '",last_def,"' :<b></br>")
+      if(n>0){
+        for(i in 1:n){
+          guide<-paste0(guide,"<font color=\"#ba6b12\">* ",collectionNames[i], "</font></br>")
+        }
+      }else{
+        guide<-paste0(guide,"<font color=\"#a52727\">AUCUN AUTRE DEFINITION N'EST COMPATIBLE AVEC : '",last_def,"'  </font></br>")
+      }
+      
+      guide<-paste0(guide,"</br>")
+      return(guide)
+    })
+    
+    ### récap su l'ordre des collections sélectionées
+    output$uirecap_select_def_catalog_Les_Genes<-renderText({
+      req(input$select_def_catalog_Les_Genes)
+      nbr<-length(input$select_def_catalog_Les_Genes)
+      collectionNames<-input$select_def_catalog_Les_Genes
+      recap<-paste0("<b>Ordre d'éxécution des requetês<b></br>")
+      for(i in 1:nbr){
+        recap<-paste0(recap,"<font color=\"#187ea3\">(",i, ") ",collectionNames[i], "</font></br>")
+      }
+      recap<-paste0(recap,"</br>")
+      return(recap)
+    })
+    
+    ### Valider l'ordre des requêtes
+    testOrdre<-eventReactive(input$ActionValider_definition_Les_Genes,{
+      req(input$select_def_catalog_Les_Genes)
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Verification de l'ordre des collections... "), value = 0)
+      nbr<-2
+      progress$inc(1/nbr)
+      
+      ### on sauvegarde la liste des définitions selectionnée
+      globalInformation$user$defSelected<-input$select_def_catalog_Les_Genes
+      
+      test<-
+        checkCollectionOrder(
+          dataFrameDefinition()[1,"database"],
+          globalInformation$jointuresCollections,
+          input$select_def_catalog_Les_Genes,
+          dataFrameDefinition()[1,"catalog"]
+        )
+      progress$inc(1/nbr)
+      
+      
+      return(test)
+      
+    })
+    
+    # observeEvent(input$ActionValider_definition_Les_Genes,{
+    #   globalInformation$user$defSelected<-input$select_def_catalog_Les_Genes
+    # })
+    ### message qui indique si l'ordre des définitions est valide ou pas
+    output$ERROR_ActionValider_definition_Les_Genes<-renderText({
+      test<-testOrdre()
+      msg<-""
+      if(test==F){
+        msg<-paste0("</br><font color=\"#963c5a\"><b>", "Attention !! l'ordre d'éxécution des requêtes est Invalide", "</b></font>")
+        msg<-paste0(msg,"</br><font color=\"#963c5a\"><b>", "Vous pouvez par exemple changer l'ordre de la liste ci-dessus", "</b></font></br>")
+      }else{
+        msg<-paste0("</br><font color=\"#36aa7a\"><b>", "L'ordre d'éxécution des requetês est valide ", "</b></font>")
+        msg<-paste0(msg,"</br><font color=\"#36aa7a\"><b>", "vous pouvez éffectuer vos requêtes via l'interface ci-dessous ", "</b></font></br>")
+      }
+      return(msg)
+    })
+    ###########################################################################################################################################
+    ###########################################################################################################################################
+    ### server_ui_interface_des_requetes_sur_les_definitions_Les_Genes.R
+    ### ici on définie les differentes interface qui permettront de faire des requêtes sur les catalogue sélectionné
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Requetes_et_visualisation/Donnees_Metagenomique/Faire_des_requetes/Les_Genes"),
+        "/server_ui_interface_des_requetes_sur_les_definitions_Les_Genes.R"),
+      local = TRUE)$value
+    
+    #######################################
+    ### serverLes_Genes_valider_requete.R
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Requetes_et_visualisation/Donnees_Metagenomique/Faire_des_requetes/Les_Genes"),
+        "serverLes_Genes_valider_requete.R"),
+      local = TRUE)$value
+    
+    #######################################
+    ### serverLes_Genes_Enregistrer_ma_requete.R
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Requetes_et_visualisation/Donnees_Metagenomique/Faire_des_requetes/Les_Genes"),
+        "serverLes_Genes_Enregistrer_ma_requete.R"),
+      local = TRUE)$value
+    
+    #######################################
+    ### serverLes_Genes_valider_requete.R
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Requetes_et_visualisation/Donnees_Metagenomique/Faire_des_requetes/Les_Genes"),
+        "serverLes_Genes_uidata_frame_resultant.R"),
+      local = TRUE)$value
+    
+    ###########################################################################################################################################
+    ###########################################################################################################################################
+    # #### uiTab1
+    # output$uiTab1_resultat_def_catalog_Les_Genes<-renderUI({
+    #   fluidPage(
+    #     fluidRow(
+    #       box(
+    #         #title = "Les variables",
+    #         status = "primary",
+    #         #solidHeader = TRUE,
+    #         collapsible = TRUE,collapsed = F,
+    #         width = 12,
+    #         uiOutput("uiCheckbox_resultat_def_catalog_Les_Genes")
+    #       ) #end box
+    #     ),#end fluidRow
+    #     fluidRow(withSpinner(DT::dataTableOutput('dataTable_resultat_def_catalog_Les_Genes')))
+    #   )
+    #   
+    #   
+    #   
+    # })
+    
+    # ####### data frame
+    # output$dataTable_def_catalog_Les_Genes<- DT::renderDataTable({
+    #   req(input$Checkbox_def_catalog_Les_Genes)
+    #  
+    #   listCol<-input$Checkbox_def_catalog_Les_Genes
+    #   if(length(listCol)>1)
+    #   DT::datatable(dataFrameDefinition()[,listCol],filter = 'top',selection = 'single') # vous pouvez changé single par multiple
+    #   
+    # })
+    # 
+    # ####### checkbox
+    # output$uiCheckbox_def_catalog_Les_Genes <-renderUI({
+    #   req(input$dataTable_catalog_select_catalogue_rows_selected)
+    #   #choices = setNames(dataFrameContrainte[,"queries"],dataFrameContrainte[,"queries_traduction"])
+    #   choices = names(dataFrameDefinition())
+    #   selectInput(inputId ="Checkbox_def_catalog_Les_Genes" ,
+    #               label ="Les colonnes : " ,
+    #               choices = choices,
+    #               selected =choices[1:2],
+    #               multiple = T)
+    #   # checkboxGroupInput("Checkbox_def_catalog_Les_Genes", 
+    #   #                    " ",
+    #   #                    names(dataFrameDefinition()),
+    #   #                    selected =colnames(dataFrameDefinition())[1:2]
+    #   # )
+    #   
+    # })
+    
+    
+    ########### colonne 2 box 1:  Information sur les Définitions et Modules
+    #############################################################################################
+   
+    # ####### data frame
+    # output$dataTable_recap_def_catalog_Les_Genes<- DT::renderDataTable({
+    #   req(input$Checkbox_recap_def_catalog_Les_Genes)
+    #   
+    #   listCol<-input$Checkbox_recap_def_catalog_Les_Genes
+    #   if(length(listCol)>1)
+    #     DT::datatable(myCollectionData()[,listCol],filter = 'top',selection = 'none') # vous pouvez changé single par multiple
+    #   
+    # })
+    # 
+    # ####### checkbox
+    # output$uiCheckbox_recap_def_catalog_Les_Genes <-renderUI({
+    #   req(input$dataTable_def_catalog_Les_Genes_rows_selected)
+    #   choices = names(myCollectionData())
+    #   selectInput(inputId ="Checkbox_recap_def_catalog_Les_Genes" ,
+    #               #label ="" ,
+    #               label = "Sélectionner les colonnes à afficher",
+    #               choices = choices,
+    #               selected =choices[1:2],
+    #               multiple = T)
+    #   # checkboxGroupInput("Checkbox_recap_def_catalog_Les_Genes", 
+    #   #                    " ",
+    #   #                    names(myCollectionData()),
+    #   #                    selected =colnames(myCollectionData())[1:2]
+    #   # )
+    #   # 
+    # })
+    # 
+    
+    
+    
+    
+    # 
+    # ##### recap requête
+    # output$uiRecap_de_ma_requete<-renderUI({
+    #   req(input$Config_ma_requete_select_variable)
+    #   #req(input$Config_ma_requete_select_variable)
+    #   div(
+    #     box(
+    #       status = "success", #solidHeader = TRUE,
+    #       collapsible = F, width = 12, 
+    #       textOutput("text_Config_ma_requete")
+    #     ),#end box
+    #     box(
+    #       status = "danger", #solidHeader = TRUE,
+    #       collapsible = F, width = 12, 
+    #       textOutput("text_Config_ma_requete_resultat")
+    #     )#end box
+    #     
+    #   )#end div
+    #   
+    # })
+    
+    ### text explicatif # a supprimer
+    output$text_Config_ma_requete<-renderText({
+      req(input$Config_ma_requete_select_variable)
+      req(input$dataTable_def_catalog_Les_Genes_rows_selected)
+      
+      collectionName<-dataFrameDefinition()[input$dataTable_def_catalog_Les_Genes_rows_selected,"name"]
+      
+      msg0<-paste0("Ma requête est : ")
+      msg1<-paste0("- Ma collection : ",collectionName)
+      msg2<-paste0("- variable : ",input$Config_ma_requete_select_variable)
+      if(class(myCollectionData()[,input$Config_ma_requete_select_variable]) == "character"){
+        condi<-input$Config_ma_requete_condition_text
+        msg3<-paste0("- Condition : ",condi)
+      }else if(class(myCollectionData()[,input$Config_ma_requete_select_variable]) %in% c("numeric","integer")){
+        condi<-input$uiConfig_ma_requete_condition_slidernumeric
+        msg3<-paste0("- Condition : [ ",condi[1],",", condi[2],"  ]")
+      }else if(class(myCollectionData()[,input$Config_ma_requete_select_variable]) =="list"){
+        # condi<-input$uiConfig_ma_requete_condition_slidernumeric
+        # msg3<-paste0("- Condition : [ ",condi[1],",", condi[2],"  ]")
+      } 
+      
+      mgs4<-" [  Ceci est unlong message pour tester le textoutput  ]"
+      paste(msg0,msg1,msg2,msg3,mgs4,sep = ' ')
+    })
+    
+   
+    
+    
+    observeEvent(input$dataTable_catalog_select_catalogue_rows_selected,{
+      # jscode <- "
+      # shinyjs.collapse = function(boxid) {
+      # $('#' + boxid).closest('.box').find('[data-widget=collapse]').click();
+      # }
+      # "
+      # 
+      
+      
+    })
+    #### bouton de validation
+    
+    
+    #####################################################################################################
+    
+    # ##### bouton de validation
+    # myCollectionDataSelectedValider<-eventReactive(input$ActionValider_Config_ma_requete,{
+    #   req(input$Config_ma_requete_select_variable)
+    #   mydataFinal<-data.frame()
+    #   #### initialisation des variables
+    #   catalogGeneName<-dataFrameDefinition()[input$dataTable_def_catalog_Les_Genes_rows_selected,"catalog"]
+    #   
+    #   collectionGeneName<-paste0("def_genes_",catalogGeneName)#"def_genes_cat_hs9.9_v1"# 
+    #   collectionName<-dataFrameDefinition()[input$dataTable_def_catalog_Les_Genes_rows_selected,"name"]
+    #   variableQuery<-input$Config_ma_requete_select_variable
+    #   conditionQuery<-""
+    #   myQueryString<-""
+    #   if(class(myCollectionData()[,input$Config_ma_requete_select_variable]) == "character"){
+    #     conditionQuery<-input$Config_ma_requete_condition_text
+    #     myQueryString<-myQueryChaineN(variableQuery,conditionQuery )
+    #     
+    #   }else{
+    #     conditionQuery<-input$uiConfig_ma_requete_condition_slidernumeric
+    #     myQueryString<-myQueryMinMaxN(variableQuery,min=conditionQuery[1], max =conditionQuery[2] )
+    #   } 
+    #   
+    #   globalInformation$user$myQueryGene<-myQueryString
+    #   globalInformation$user$myQueryGeneTraduction<-
+    #     paste(collectionName,variableQuery,conditionQuery,sep = " -- ")
+    #   
+    #   # Create a Progress object
+    #   progress <- shiny::Progress$new()
+    #   # Make sure it closes when we exit this reactive, even if there's an error
+    #   on.exit(progress$close())
+    #   progress$set(message = paste0("Récupération des données"), value = 0)
+    #   nbr<-5
+    #   
+    #   progress$inc(1/nbr,detail=collectionName)
+    #   mydata<-findQuery(globalInformation$globalDatabase,collectionName,myQueryString)
+    #   ###############
+    #   
+    #   progress$inc(1/nbr,detail="les clés")
+    #   #### recupération des clés ou identifiant de la collection
+    #   
+    #   key_collectionGeneName_collectionName<-
+    #     getCollectionKeyMongo(globalInformation$globalDatabase,
+    #                           globalInformation$jointuresCollections,
+    #                           collectionGeneName,
+    #                           collectionName,catalogGeneName)
+    #   key_collectionName_collectionGeneName<-
+    #     getCollectionKeyMongo(globalInformation$globalDatabase,
+    #                           globalInformation$jointuresCollections,
+    #                           collectionName,
+    #                           collectionGeneName,
+    #                           catalogGeneName)
+    #   
+    #   if(key_collectionGeneName_collectionName!=F && key_collectionName_collectionGeneName!=F){
+    #     idCollectionName<-mydata[key_collectionName_collectionGeneName]#mydata["V1"]
+    #     # on la converti en une liste ou vecteur ( ce data frame à une seul colonnes)
+    #     listIdCollectionName<-list()
+    #     for(i in 1:nrow(idCollectionName)){
+    #       listIdCollectionName<-append(listIdCollectionName,idCollectionName[i,1])
+    #     } 
+    #     ################
+    #     #KOs_embl_metacardis #key_collectionGeneName_collectionName
+    #     #myQueryStringGene<-myQueryUniqueIN("KOs_embl_metacardis",listIdCollectionName)
+    #     myQueryStringGene<-myQueryUniqueIN(key_collectionGeneName_collectionName,listIdCollectionName)
+    #     
+    #     progress$inc(1/nbr,detail=collectionGeneName)
+    #     mydataGene<-findQuery(globalInformation$globalDatabase,collectionGeneName,myQueryStringGene)
+    #     ###############
+    #     
+    #     mydataFinal<-mydataGene
+    #   }else{
+    #     mydataFinal<-mydata[1,]
+    #   }
+    #   
+    #   progress$inc(1/nbr,detail="comptage des données")
+    #   globalInformation$user$myResultGene<-nrow(mydataFinal)
+    #   progress$inc(1/nbr)
+    #   
+    #   return(mydataFinal)
+    #   
+    # })#myCollectionDataSelectedValider
+    # 
+    
+    ########### colonne 2 box 2:  Résultat de ma requête
+    #############################################################################################
+
+    ########### Tab1 : dataTable résultat des requêtes
+    # #### uiTab1
+    # output$uiTab1_resultat_def_catalog_Les_Genes<-renderUI({
+    #   fluidPage(
+    #     fluidRow(
+    #       box(
+    #         #title = "Les variables",
+    #         status = "primary",
+    #         #solidHeader = TRUE,
+    #         collapsible = TRUE,collapsed = F,
+    #         width = 12,
+    #         uiOutput("uiCheckbox_resultat_def_catalog_Les_Genes")
+    #       ) #end box
+    #     ),#end fluidRow
+    #     fluidRow(withSpinner(DT::dataTableOutput('dataTable_resultat_def_catalog_Les_Genes')))
+    #   )
+    #   
+    #     
+    #   
+    # })
+    # 
+    # ####### data frame
+    # output$dataTable_resultat_def_catalog_Les_Genes<- DT::renderDataTable({
+    #   #req(input$Checkbox_resultat_def_catalog_Les_Genes)
+    #   
+    #   listCol<-input$Checkbox_resultat_def_catalog_Les_Genes
+    #   if(length(listCol)>1)
+    #     DT::datatable(myCollectionDataSelectedValider()[,listCol],filter = 'top',selection = 'none') # vous pouvez changé single par multiple
+    #   
+    # })
+    # 
+    # ####### checkbox
+    # output$uiCheckbox_resultat_def_catalog_Les_Genes <-renderUI({
+    #   choices = names(myCollectionDataSelectedValider())
+    #   selectInput(inputId ="Checkbox_resultat_def_catalog_Les_Genes" ,
+    #               #label ="" ,
+    #               label = "Sélectionner les colonnes à afficher",
+    #               choices = choices,
+    #               selected =choices[1:2],
+    #               multiple = T)
+    #   # checkboxGroupInput("Checkbox_resultat_def_catalog_Les_Genes", 
+    #   #                    " ",
+    #   #                    names(myCollectionDataSelectedValider()),
+    #   #                    selected =colnames(myCollectionDataSelectedValider())[1:2]
+    #   # )
+    #   
+    # })
+    # 
+    ############################## Visualisation ################################################
+    #############################################################################################
+    #############################################################################################
+    
+    # output$uiVisualisation_des_donnees<-renderUI({
+    #   fluidRow(
+    #     column(6,
+    #            box(
+    #              title = "nombre de Genes", solidHeader = TRUE,#status = "primary", 
+    #              collapsible = TRUE,collapsed = T, width = 12,
+    #              #uiOutput("uiVisualisation_des_donnees_select_val_plot_nombre_de_genes"),
+    #              selectInput(
+    #                inputId ='Visualisation_des_donnees_select_val_plot_nombre_de_genes' ,
+    #                label ="Selectionée une variable" ,
+    #                choices =c("a"),#colnames(myCollectionDataSelectedValider()),
+    #                multiple = T),
+    #              plotOutput("Visualisation_des_donnees_plot_nombre_de_genes")
+    #            ) #end box
+    #            
+    #     ),
+    #     column(6,"")
+    #   )
+    # })
+    # 
+    # output$Visualisation_des_donnees_plot_nombre_de_genes<-renderPlot({
+    #   req(input$Visualisation_des_donnees_select_val_plot_nombre_de_genes)
+    #   # x<-myCollectionDataSelectedValider()
+    #   # 
+    #   # t<-myDataNbr(x,input$Visualisation_des_donnees_select_val_plot_nombre_de_genes[1],"GeneID")
+    #   # c<-myBarPlot(t,input$Visualisation_des_donnees_select_val_plot_nombre_de_genes[1],"nombreGene",FALSE,T) 
+    #   # c
+    # })
+    
+    ##### select nombre de gene
+    # output$uiVisualisation_des_donnees_select_val_plot_nombre_de_genes<-renderUI({
+    #   
+    #   
+    # })
+    
+    ########################## Visualisation #########################################
+    ##################################################################################
+    
+    # ### IHM
+    # output$uiTab3_visualisation_def_catalog_Les_Genes<-renderUI({
+    #   req(input$ActionValider_Config_ma_requete)
+    #   plotOutput("plot_Tab3_visualisation_def_catalog_Les_Genes")
+    # })
+    # 
+    # ### plot
+    # 
+    # output$plot_Tab3_visualisation_def_catalog_Les_Genes<-renderPlot({
+    #   #myCommunCatalogPlot(myCollectionDataSelectedValider())
+    # })
+    
+  }

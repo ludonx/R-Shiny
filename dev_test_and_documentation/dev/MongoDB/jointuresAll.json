@@ -1,0 +1,132 @@
+[
+  {"nameCollectionA" : "def_genes_cat_hs9.9_v1", "nameCollectionB": "def_genes_cat_hs9.9_v1" ,"key":"GeneID","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  {"nameCollectionA" : "def_mgstaxonomy_cat_hs9.9_v1", "nameCollectionB": "def_mgstaxonomy_cat_hs9.9_v1" ,"key":"_row","catalog" : ["cat_hs9.9_v1"]},
+  
+  {"nameCollectionA" : "def_ko_definition_KEGGdb_5_19", "nameCollectionB": "def_ko_definition_KEGGdb_5_19" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+
+  {"nameCollectionA" : "def_module_definitions_KEGGdb_5_19", "nameCollectionB": "def_module_definitions_KEGGdb_5_19" ,"key":"_row","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  {"nameCollectionA" : "def_ko_Module_associations_KEGGdb_5_19", "nameCollectionB": "def_ko_Module_associations_KEGGdb_5_19" ,"key":"moduleIDs","catalog" : ["cat_hs9.9_v1"]},
+  
+  {"nameCollectionA" : "def_module_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_module_pathway_associations_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1"]},
+  
+  {"nameCollectionA" : "def_ko_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_ko_pathway_associations_KEGGdb_5_19" ,"key":"V1","catalog" : ["cat_hs9.9_v1"]},
+  
+    {"nameCollectionA" : "def_pathway_definitions_KEGGdb_5_19", "nameCollectionB": "def_pathway_definitions_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1"]},
+  
+  {"nameCollectionA" : "def_cag_cat_hs9.9_v1", "nameCollectionB": "def_cag_cat_hs9.9_v1" ,"key":"MGS","catalog" : ["cat_hs9.9_v1"]},
+  
+  
+
+  
+  {"nameCollectionA" : "def_cag_cat_hs9.9_v1", "nameCollectionB": "def_mgstaxonomy_cat_hs9.9_v1" ,"key":"MGS","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  {"nameCollectionA" : "def_mgstaxonomy_cat_hs9.9_v1", "nameCollectionB": "def_cag_cat_hs9.9_v1" ,"key":"_row","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs9.9_v1", "nameCollectionB": "def_cag_cat_hs9.9_v1" ,"key":"GeneID","catalog" : ["cat_hs9.9_v1"]},
+  {"nameCollectionA" : "def_cag_cat_hs9.9_v1", "nameCollectionB": "def_genes_cat_hs9.9_v1" ,"key":"GeneIDs","catalog" : ["cat_hs9.9_v1"]},
+  
+  
+  
+  
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs9.9_v1", "nameCollectionB": "def_ko_definition_KEGGdb_5_19" ,"key":"KOs_embl_metacardis","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_ko_definition_KEGGdb_5_19", "nameCollectionB": "def_genes_cat_hs9.9_v1" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs9.9_v1", "nameCollectionB": "def_ko_Module_associations_KEGGdb_5_19" ,"key":"KOs_embl_metacardis","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_ko_Module_associations_KEGGdb_5_19", "nameCollectionB": "def_genes_cat_hs9.9_v1" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs9.9_v1", "nameCollectionB": "def_ko_pathway_associations_KEGGdb_5_19" ,"key":"KOs_embl_metacardis","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_ko_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_genes_cat_hs9.9_v1" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+  
+  
+  
+  
+    {"nameCollectionA" : "def_ko_Module_associations_KEGGdb_5_19", "nameCollectionB": "def_ko_definition_KEGGdb_5_19" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_ko_definition_KEGGdb_5_19", "nameCollectionB": "def_ko_Module_associations_KEGGdb_5_19" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+    {"nameCollectionA" : "def_ko_definition_KEGGdb_5_19", "nameCollectionB": "'def_ko_pathway_associations_KEGGdb_5_19" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "'def_ko_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_ko_definition_KEGGdb_5_19" ,"key":"koIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+  
+  
+  
+  
+   {"nameCollectionA" : "def_ko_Module_associations_KEGGdb_5_19", "nameCollectionB": "def_module_pathway_associations_KEGGdb_5_19" ,"key":"moduleIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_module_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_ko_Module_associations_KEGGdb_5_19" ,"key":"moduleIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+   {"nameCollectionA" : "def_module_definitions_KEGGdb_5_19", "nameCollectionB": "def_module_pathway_associations_KEGGdb_5_19" ,"key":"_row","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_module_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_module_definitions_KEGGdb_5_19" ,"key":"moduleIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+      {"nameCollectionA" : "def_ko_Module_associations_KEGGdb_5_19", "nameCollectionB": "def_module_definitions_KEGGdb_5_19" ,"key":"moduleIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_module_definitions_KEGGdb_5_19", "nameCollectionB": "def_ko_Module_associations_KEGGdb_5_19" ,"key":"_row","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  
+  
+  
+  
+  
+  {"nameCollectionA" : "def_module_pathway_associations_KEGGdb_5_19", "nameCollectionB": "'def_ko_pathway_associations_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "'def_ko_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_module_pathway_associations_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+  {"nameCollectionA" : "def_pathway_definitions_KEGGdb_5_19", "nameCollectionB": "'def_ko_pathway_associations_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "'def_ko_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_pathway_definitions_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+     {"nameCollectionA" : "def_pathway_definitions_KEGGdb_5_19", "nameCollectionB": "def_module_pathway_associations_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  {"nameCollectionA" : "def_module_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_pathway_definitions_KEGGdb_5_19" ,"key":"mapIDs","catalog" : ["cat_hs9.9_v1","cat_hs9.9_v2"]},
+  
+
+  
+  
+  
+  
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs3.9_v1", "nameCollectionB": "def_genes_cat_hs3.9_v1" ,"key":"GeneID","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  
+  {"nameCollectionA" : "def_mgstaxonomy_cat_hs3.9_v1", "nameCollectionB": "def_mgstaxonomy_cat_hs3.9_v1" ,"key":"_row","catalog" : ["cat_hs3.9_v1"]},
+  
+  
+  
+  
+  
+  {"nameCollectionA" : "def_cag_cat_hs3.9_v1", "nameCollectionB": "def_mgstaxonomy_cat_hs3.9_v1" ,"key":"MGS","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  {"nameCollectionA" : "def_mgstaxonomy_cat_hs3.9_v1", "nameCollectionB": "def_cag_cat_hs3.9_v1" ,"key":"_row","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs3.9_v1", "nameCollectionB": "def_cag_cat_hs3.9_v1" ,"key":"GeneName","catalog" : ["cat_hs3.9_v1"]},
+  {"nameCollectionA" : "def_cag_cat_hs3.9_v1", "nameCollectionB": "def_genes_cat_hs3.9_v1" ,"key":"GeneNames","catalog" : ["cat_hs3.9_v1"]},
+  
+  
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs3.9_v1", "nameCollectionB": "def_ko_definition_KEGGdb_5_19" ,"key":"KOs_embl_metacardis","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  {"nameCollectionA" : "def_ko_definition_KEGGdb_5_19", "nameCollectionB": "def_genes_cat_hs3.9_v1" ,"key":"koIDs","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs3.9_v1", "nameCollectionB": "def_ko_Module_associations_KEGGdb_5_19" ,"key":"KOs_embl_metacardis","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  {"nameCollectionA" : "def_ko_Module_associations_KEGGdb_5_19", "nameCollectionB": "def_genes_cat_hs3.9_v1" ,"key":"koIDs","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  
+  
+  {"nameCollectionA" : "def_genes_cat_hs3.9_v1", "nameCollectionB": "def_ko_pathway_associations_KEGGdb_5_19" ,"key":"KOs_embl_metacardis","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]},
+  {"nameCollectionA" : "def_ko_pathway_associations_KEGGdb_5_19", "nameCollectionB": "def_genes_cat_hs3.9_v1" ,"key":"koIDs","catalog" : ["cat_hs3.9_v1","cat_hs3.9_v2"]}
+    
+    
+  
+  
+  
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Requetes_et_visualisation",
+    "ui":null,
+    "server":null,
+    "menu":"menuItem('Requêtes et Analyses',icon = icon('dna'),menuItem('Catalogues',icon = icon('book'),tabName = 'Les_Genes'),menuItem('Couverture des modules',tabName = 'Couverture_des_modules',icon = icon('solar-panel')),menuItem('Données des projets',icon = icon('server'),menuSubItem('Sélection de projets',tabName = 'Selection_de_projets',icon = icon('list-alt')),menuItem('Faire des requêtes',icon = icon('laptop-code'),menuSubItem('Les MGS',tabName = 'Les_MGS_projets',icon = icon('microscope')))))",
+    "fileToSource":null,
+    "priority":0,
+    "linkModule":null,
+    "rang":20,
+    "menu_en":"menuItem('App',icon = icon('tablet-alt'),menuItem('Make Queries',icon = icon('keyboard'),tabName = 'Les_Genes'),menuItem('Project Data',icon = icon('server'),menuSubItem('Select a project',tabName = 'Selection_de_projets',icon = icon('list-alt')),menuItem('Make a project query',icon = icon('laptop-code'),menuSubItem('MGS',tabName = 'Les_MGS_projets',icon = icon('microscope')))))"
+  }
+]

@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1567693605287.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5E943A4C",
+    "lastKnownWriteTime" : 1564758135,
+    "last_content_update" : 1564758135,
+    "path" : "~/GIT_LAB_test/iogoldg/RShiny/modules/Requetes_et_visualisation/Les_Genes/uiLes_Genes.R",
+    "project_path" : "modules/Requetes_et_visualisation/Les_Genes/uiLes_Genes.R",
+    "properties" : {
+        "cursorPosition" : "23,28",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

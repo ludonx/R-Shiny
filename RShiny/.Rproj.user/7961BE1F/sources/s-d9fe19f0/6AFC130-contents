@@ -1,0 +1,134 @@
+# globalInformation ----
+globalInformation <- reactiveValues(
+  
+  # nom de la base de données principales
+  # cette base de données contient notamment les different catalogues
+  # et les collections liées à la gestion de l'application
+  globalDatabase = app$config$globalDatabase,
+  
+  # collection des utilisateurs
+  usersCollections = app$config$usersCollection,
+  
+  # collection des utilisateurs suprimmer
+  usersCollectionsDelete = app$config$usersCollectionDelete,
+  
+  # collection des projets
+  projectsCollections = app$config$projectsCollections,
+  
+  # collection des catalogues
+  catalogCollections = app$config$catalogCollections,
+  
+  # cette varaible contiendra le nom de la collection qui 
+  # regroupe les informations relatives à chaque collection 
+  # potentielement utiliser dans l'application
+  collections = app$config$mainCollections,
+  
+  # collection qui contient les different lien entre les collections des catalogues
+  jointuresCollections = app$config$jointuresCollections,
+  
+  # collection qui contient les different lien entre les collections des catalogues
+  typeColumnCollections = app$config$typeColumnCollections,
+  
+  
+  # collection qui contient les couverture des differents modules
+  moduleCoverageCollections = app$config$moduleCoverageCollections,
+  
+  
+  # workDirectory
+  workDirectory = app$config$workDirectory,
+  
+  # contiendra les résultats des differentes requêtes de l'utilisateur via la console 
+  # contiendra également des retour sur le fonctionnement de l'application. c'est juste des impression
+  Console="",
+  
+  
+  # cette variable est une structure qui sera utiliser 
+  # pour stocker les informations sur un utilisateur connecté
+  user="",
+  modules=""
+  
+  
+)
+
+
+# structure des utilisateurs
+# cette structure permet de caractériser un utilisateur
+# globalInformation$user ----
+globalInformation$user <- reactiveValues(
+  id="",
+  nom="-----",
+  prenom="-----",
+  access_level =0,
+  time=Sys.time(),
+  save_session_time=1,
+  
+  # when empty authentification is activated and will fill up the different variables
+  path="",
+  email="",
+  profil="",
+  connected=F,
+  
+  projectSelected=list(),
+  catalogSelected="",
+  
+
+  myQueryGene="",
+  myQueryGeneTraduction="",
+  myResultGene=-1,
+  
+  
+
+  dataFrameLesUtilisateurs="",
+
+  
+  dataFrameRequete_Mes_requetes=data.frame()
+  
+)
+
+# globalInformation$modules ----
+globalInformation$modules <- reactiveValues(
+  # ** Catalogue ----
+  Catalogue= reactiveValues(
+    time = Sys.time(),
+    save_session_time = 1,
+    variables = list(),
+    
+    CatalogSelected="",
+    defSelected = list(),
+    # liste des dataFrame sauvegarder par l'utilisateur
+    listSaveDataFrame = list(),
+    # liste des nom des dataFrame sauvegarder par l'utilisateur
+    #listNameSaveDataFrame=list(),
+    # le data frame qui contiendra les contrainte de la requête deja exécuté par l'utilisateur
+    dataFrameContrainte = data.frame(),
+    dataFrameRequete = data.frame(),
+    
+    dataFrameMesRequetes = data.frame(),
+    
+    dataFrameCollectionData = list(),
+    dataFrameCollectionDataValider = list()
+  ),
+  # ** Ma_console ----
+  Ma_console = reactiveValues(
+    time = Sys.time(),
+    save_session_time = 1,
+    variables = list(),
+    
+    
+    text = "",
+    dataFrame = data.frame(),
+    plot = ""
+  ),
+  # ** Patient_analyses ----
+  Patient_analyses = reactiveValues(
+    time = Sys.time(),
+    save_session_time = 1,
+    variables = list(),
+    
+    
+    datajointure = data.frame()
+  )
+)
+
+
+

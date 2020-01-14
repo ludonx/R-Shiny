@@ -1,0 +1,10 @@
+[
+  {
+    "name":"Requetes_et_visualisation/Couverture_des_modules",
+    "ui":"tabItem_Couverture_des_modules",
+    "server":"serverCouverture_des_modules(input, output, session,globalInformation)",
+    
+    
+    "fileToSource":["serverCouverture_des_modules.R","uiCouverture_des_modules.R"]
+  }
+]

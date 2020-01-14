@@ -1,0 +1,390 @@
+observeEvent(input$ActionValider_definition_Les_Genes,{
+  req(input$select_def_catalog_Les_Genes)
+  #listeCollection = globalInformation$modules$Catalogue$defSelected
+#observe(input$ActionValider_definition_Les_Genes,{
+  ## on vide la liste de contrainte des contraintes si il valide à nouveaux sont choix
+  #cat("init : globalInformation$modules$Catalogue$dataFrameContrainte\n")
+  if(nrow(globalInformation$modules$Catalogue$dataFrameContrainte)>0){
+    globalInformation$modules$Catalogue$dataFrameContrainte<-data.frame()
+  }
+  if(nrow(globalInformation$modules$Catalogue$dataFrameRequete)>0){
+    listeCollection = input$select_def_catalog_Les_Genes
+    globalInformation$modules$Catalogue$dataFrameRequete<-data.frame()
+    for(i in 1:length(listeCollection)){
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"collection"]<-listeCollection[i]
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"requete"]<-'{}'
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"nbrElemRequete"]<--1
+      
+      df<-dataFrameDefinition()[dataFrameDefinition()["name"]==listeCollection[i] ,"database"]
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"database"]<-df[1]
+        
+              
+    }
+  }else if(nrow(globalInformation$modules$Catalogue$dataFrameRequete)==0){
+    listeCollection = input$select_def_catalog_Les_Genes
+    for(i in 1:length(listeCollection)){
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"collection"]<-listeCollection[i]
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"requete"]<-'{}'
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"nbrElemRequete"]<--1
+      df<-dataFrameDefinition()[dataFrameDefinition()["name"]==listeCollection[i] ,"database"]
+      globalInformation$modules$Catalogue$dataFrameRequete[i,"database"]<-df[1]
+      }
+  }
+  
+})
+
+### Generation de lIHM Suite
+observe({
+  req(input$ActionValider_definition_Les_Genes)
+  # @ludo bug, pour faire simple il faut respecte un certains ordre qui n'est pas forcement implicite
+  # donc cette ligne permet de respecter l'ordre
+  # permet d'adapter les box au valeur des data frame correspondant
+  req(input$select_def_catalog_Les_Genes) ## 1heure pour trouver la solution
+  
+  listeCollection = globalInformation$modules$Catalogue$defSelected
+  db_listeCollection=globalInformation$modules$Catalogue$databaseDefSelected
+ 
+  nbrMaxCollection<-length(listeCollection)
+  if(nbrMaxCollection){
+  uisRequetesSuite<-lapply(1:nbrMaxCollection,function(indiceCollection){
+    lc<-listeCollection[indiceCollection]
+    db_lc<-db_listeCollection[indiceCollection]
+    #cat("\n* uisRequetesSuite ****",lc)
+    #############################################################################################
+    ##############################   DEBUT LAPPLY   #############################################
+    
+    uiConfig_ma_requete_select_variable_Les_Genes<-paste0("uiConfig_ma_requete_select_variable_Les_Genes",lc)
+    uiConfig_ma_requete_condition_Les_Genes<-paste0("uiConfig_ma_requete_condition_Les_Genes",lc)
+    ActionAjouter_une_contrainte_Les_Genes<-paste0("ActionAjouter_une_contrainte_Les_Genes",lc)
+    uiSave_data_frame_requete_Les_Genes<-paste0("uiSave_data_frame_requete_Les_Genes",lc)
+    uiMes_contraintes_Les_Genes<-paste0("uiMes_contraintes_Les_Genes",lc)
+    uima_requete_json<-paste0("uima_requete_json",lc)
+    #############
+    #################
+    #########################################################################################################
+    #################
+    #############
+    Config_ma_requete_select_variable_Les_Genes<-paste0("Config_ma_requete_select_variable_Les_Genes",lc)
+    Config_ma_requete_condition_text_Les_Genes<-paste0("Config_ma_requete_condition_text_Les_Genes",lc)
+    Config_ma_requete_condition_list_Les_Genes<-paste0("Config_ma_requete_condition_list_Les_Genes",lc)
+    uiConfig_ma_requete_condition_slidernumeric_Les_Genes<-paste0("uiConfig_ma_requete_condition_slidernumeric_Les_Genes",lc)
+    #############
+    #################
+    #########################################################################################################
+    #################
+    #############
+    select_Mes_contraintes_Les_Genes<-paste0("select_Mes_contraintes_Les_Genes",lc)
+    checkboxInput_Mes_contraintes_Les_Genes <- paste0("checkboxInput_Mes_contraintes_Les_Genes",lc)
+    ActionValider_Config_ma_requete_Les_Genes<-paste0("ActionValider_Config_ma_requete_Les_Genes",lc)
+    text_Config_ma_requete_resultat_Les_Genes<-paste0("text_Config_ma_requete_resultat_Les_Genes",lc)
+    #############
+    #################
+    #########################################################################################################
+    #################
+    #############
+    textinput_name_data_frame_Les_Genes<-paste0("textinput_name_data_frame_Les_Genes",lc)
+    ActionSave_data_frame_requete_Les_Genes<-paste0("ActionSave_data_frame_requete_Les_Genes",lc)
+    ERROR_MGS_ActionSave_data_frame_requete_Les_Genes<-paste0("ERROR_MGS_ActionSave_data_frame_requete_Les_Genes",lc)
+    
+    
+    
+    myCollectionDataSelected<-findLimit(db_lc,lc,20)
+      
+    
+    ###### on initialise le data frame des contraintes 
+    observeEvent(input[[ActionAjouter_une_contrainte_Les_Genes]],{
+      
+      
+      variableQuery<-input[[Config_ma_requete_select_variable_Les_Genes]]
+      conditionQuery<-""
+      myQueryString<-""
+      
+     
+      
+      ## on definie la contrainte  
+      if(class(myCollectionDataSelected[,input[[Config_ma_requete_select_variable_Les_Genes]]]) == "character"){
+        conditionQuery<-input[[Config_ma_requete_condition_text_Les_Genes]]
+        myQueryString<-myConstraintChaineN(variableQuery,conditionQuery )
+        myQueryStringTraduction<-myQueryChaineN_Traduction(variableQuery,conditionQuery)
+        
+      }else if(class(myCollectionDataSelected[,input[[Config_ma_requete_select_variable_Les_Genes]]]) == "list"){
+        #on converti la variable en une liste d'entier
+        conditionQuery<-input[[Config_ma_requete_condition_list_Les_Genes]]
+        conditionQuery<-as.numeric(as.list(strsplit(conditionQuery,",")[[1]]))
+        
+        myQueryString<-myConstraintUniqueIN_integer(variableQuery,conditionQuery )
+        myQueryStringTraduction<-myQueryChaineN_Traduction(variableQuery,paste0("[",conditionQuery[1],"...",conditionQuery[length(conditionQuery)],"]"))
+        
+        
+      }else if(class(myCollectionDataSelected[,input[[Config_ma_requete_select_variable_Les_Genes]]]) %in% c("numeric","integer")){
+        conditionQuery<-input[[uiConfig_ma_requete_condition_slidernumeric_Les_Genes]]
+        myQueryString<-myConstraintMinMaxN(variableQuery,min=conditionQuery[1], max =conditionQuery[2] )
+        myQueryStringTraduction<-myQueryMinMaxN_Traduction(variableQuery,min=conditionQuery[1], max =conditionQuery[2] )
+      }
+      
+      ## indice du dernier élément
+      i<-nrow(globalInformation$modules$Catalogue$dataFrameContrainte)
+      #cat(i)
+      # on ajoute la contrainte au data frame
+      if(nrow(globalInformation$modules$Catalogue$dataFrameContrainte)>0){
+        for(k in 1:nrow(globalInformation$modules$Catalogue$dataFrameContrainte)){
+          if(
+            (globalInformation$modules$Catalogue$dataFrameContrainte[k,"colonnes"]==variableQuery)
+            &&
+            (globalInformation$modules$Catalogue$dataFrameContrainte[k,"collection"]==lc)
+             ){
+            # permet d'ecraser des valeurs ( pour eviter les lignes dupliquées)
+            if(input[[checkboxInput_Mes_contraintes_Les_Genes]]==F) i<-k-1
+          }
+        }
+      }
+      
+      
+      
+      globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"collection"]<-lc
+      globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"colonnes"]<-variableQuery
+      globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"contraintes"]<-myQueryString
+      globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"contraintes_traduction"]<-myQueryStringTraduction
+      
+      
+      
+      ### on re initiamlise le message de confirmation d'enregistrement
+      output[[ERROR_MGS_ActionSave_data_frame_requete_Les_Genes]]<-renderText({
+        paste("")
+      })
+
+    })
+    
+    # observe({
+    #   req(input[[select_Mes_contraintes_Les_Genes]])
+    #   myQueryString<-myQueryConstraintN(input[[select_Mes_contraintes_Les_Genes]])
+    #   globalInformation$modules$Catalogue$dataFrameRequete[globalInformation$modules$Catalogue$dataFrameRequete["collection"]==lc,"requete"]<-myQueryString
+    #   
+    # })
+    
+    ### select constrainte
+    output[[uiMes_contraintes_Les_Genes]]<-renderUI({
+      #req(input[[ActionAjouter_une_contrainte_Les_Genes]])
+      
+      dataFrameContrainte<-data.frame()
+      #dataFrameContrainte<-globalInformation$modules$Catalogue$dataFrameContrainte[globalInformation$modules$Catalogue$dataFrameContrainte["collection"]==lc,]
+      if(nrow(globalInformation$modules$Catalogue$dataFrameContrainte)>0){
+        for(k in 1:nrow(globalInformation$modules$Catalogue$dataFrameContrainte)){
+          if(globalInformation$modules$Catalogue$dataFrameContrainte[k,"collection"]==lc){
+            dataFrameContrainte<-rbind(dataFrameContrainte,globalInformation$modules$Catalogue$dataFrameContrainte[k,])
+            
+          }
+        }
+      }
+      selected =c()
+      choices=c()
+      if(nrow(dataFrameContrainte)>0){
+        choices = setNames(dataFrameContrainte[,"contraintes"],dataFrameContrainte[,"contraintes_traduction"])
+        selected =dataFrameContrainte[,"contraintes"]
+      }
+        
+       
+        fluidPage(
+            selectInput(inputId =select_Mes_contraintes_Les_Genes ,
+                        label ="Définitions : " ,
+                        choices = choices,
+                        selected =selected,
+                        multiple = T)
+            
+        )#end fluidRow
+        
+      #}end if
+    })
+    
+    
+   
+    
+    ### nobmre d'élément trouvé
+    output[[text_Config_ma_requete_resultat_Les_Genes]]<-renderText({
+      #req(input[[ActionValider_Config_ma_requete_Les_Genes]])
+      nbrElemRequete<-globalInformation$modules$Catalogue$dataFrameRequete[globalInformation$modules$Catalogue$dataFrameRequete["collection"]==lc,"nbrElemRequete"]
+      paste0("Nombre d'éléments trouvé : ", nbrElemRequete)
+    })
+    output[[uima_requete_json]]<-renderText({
+      paste0(globalInformation$modules$Catalogue$dataFrameRequete[globalInformation$modules$Catalogue$dataFrameRequete["collection"]==lc,"requete"])
+    })
+    
+    ### ui ajouter le dataframe de la requete à la liste des data frame
+    output[[uiSave_data_frame_requete_Les_Genes]]<-renderUI({
+      #req(input[[ActionValider_Config_ma_requete_Les_Genes]])
+      #req(input[[ActionAjouter_une_contrainte_Les_Genes]])
+      
+      nbrElemRequete<-globalInformation$modules$Catalogue$dataFrameRequete[globalInformation$modules$Catalogue$dataFrameRequete["collection"]==lc,"nbrElemRequete"]
+      
+      fluidPage(
+          fluidRow(
+            actionButton(inputId = ActionSave_data_frame_requete_Les_Genes,
+                         label = "Exécuter & Enregistrer",
+                         icon("save"), 
+                         style="color: #fff; background-color: #3c936f; border-color: #3c936f"
+                         #style="color: #fff; background-color: #54bfe5; border-color: #54bfe5"
+            )#end actionButton
+          ),#end fluidRow
+          fluidRow(
+                   textInput(inputId = textinput_name_data_frame_Les_Genes,
+                             label ="Nom du data frame :" ,
+                             value =paste0(lc)
+                             #value =paste0(lc,"_nbrElemRequete_",nbrElemRequete)
+                   )
+
+          ),#end fluidRow
+          fluidRow(uiOutput(outputId =ERROR_MGS_ActionSave_data_frame_requete_Les_Genes))#end fluidRow
+          
+          
+        )#end fluidPage
+        
+      
+      
+    })
+    
+    ### lorsqu'on clique sur le bouton enregistre
+    observeEvent(input[[ActionSave_data_frame_requete_Les_Genes]],{
+
+      req(input[[textinput_name_data_frame_Les_Genes]])
+      #req(input[[ActionValider_Config_ma_requete_Les_Genes]])
+      
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("Requête et Enregistrement du data Frame '",input[[textinput_name_data_frame_Les_Genes]],"'"), value = 0)
+      nbr<-3
+      progress$inc(1/nbr)
+      
+      myQueryString<-""
+      if(input[[checkboxInput_Mes_contraintes_Les_Genes]]==F)
+      {
+        myQueryString<-myQueryConstraintN(input[[select_Mes_contraintes_Les_Genes]])
+      }else{
+        myQueryString<-myQueryConstraintN_OR(input[[select_Mes_contraintes_Les_Genes]])
+      }
+      
+      globalInformation$modules$Catalogue$dataFrameRequete[globalInformation$modules$Catalogue$dataFrameRequete["collection"]==lc,"requete"]<-myQueryString
+      
+      
+      
+      progress$inc(1/nbr)
+      
+      dfName<-input[[textinput_name_data_frame_Les_Genes]]
+      globalInformation$modules$Catalogue$listSaveDataFrame[[dfName]]<-findQuery(db_lc,lc,myQueryString)
+      
+      
+      
+      
+      
+      
+      ###################
+      if(indiceCollection==nbrMaxCollection){
+        
+      }else{
+        ### on ajoute une contraite à la requete suivante
+        mydata<-globalInformation$modules$Catalogue$listSaveDataFrame[[dfName]]
+        
+        mykeyA<-getCollectionKeyMongo(globalInformation$globalDatabase,
+                                      globalInformation$jointuresCollections,
+                                      globalInformation$modules$Catalogue$dataFrameRequete[indiceCollection,"collection"],
+                                      globalInformation$modules$Catalogue$dataFrameRequete[indiceCollection+1,"collection"],
+                                      "cat_hs9.9_v1")
+        mykeyB<-getCollectionKeyMongo(globalInformation$globalDatabase,
+                                      globalInformation$jointuresCollections,
+                                      globalInformation$modules$Catalogue$dataFrameRequete[indiceCollection+1,"collection"],
+                                      globalInformation$modules$Catalogue$dataFrameRequete[indiceCollection,"collection"],
+                                      "cat_hs9.9_v1")
+        # myNewConstrainte=F
+        # if(class(mydata[1,mykeyA])=="character"){
+        #   myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+        # }else if(class(mydata[1,mykeyA])=="list"){
+        #   # @ludo normalement ce n'est pas possible a moins de concatener toutes les liste de chaque ligne
+        #   #myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+        # }else if(class(mydata[1,mykeyA]) %in% c("numeric","integer")){
+        #   myNewConstrainte<-myConstraintUniqueIN_integer(mykeyB,mydata[,mykeyA])
+        # }
+        # 
+        myNewConstrainte<-F
+        #cat("\n",mykeyA,"--",colnames(mydata))
+        df<-data.frame()
+        
+        if(nrow(mydata)>0){
+          if(mykeyA=='_row')df<-mydata[mykeyA,]
+          else df<-mydata[,mykeyA]
+          
+          if(class(mydata[1,mykeyA])=="character"){
+            myNewConstrainte<-myConstraintUniqueIN(mykeyB,df)
+          }else if(class(mydata[1,mykeyA])=="list"){
+            #myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+          }else if(class(mydata[1,mykeyA]) %in% c("numeric","integer")){
+            myNewConstrainte<-myConstraintUniqueIN_integer(mykeyB,df)
+          }
+          
+        }#end nrow(mydata)>0
+        if(myNewConstrainte==F){
+          
+        }else{
+          ## indice du dernier élément
+          i<-nrow(globalInformation$modules$Catalogue$dataFrameContrainte)
+          #cat(i)
+          # on ajoute la contrainte au data frame
+          if(nrow(globalInformation$modules$Catalogue$dataFrameContrainte)>0){
+            for(k in 1:nrow(globalInformation$modules$Catalogue$dataFrameContrainte)){
+              if(
+                (globalInformation$modules$Catalogue$dataFrameContrainte[k,"colonnes"]==mykeyB)
+                &&
+                (globalInformation$modules$Catalogue$dataFrameContrainte[k,"collection"]==listeCollection[indiceCollection+1])
+              ){
+                
+                i<-k-1
+              }
+            }
+          }
+          
+          globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"collection"]<-listeCollection[indiceCollection+1]
+          globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"colonnes"]<-mykeyB
+          globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"contraintes"]<-myNewConstrainte
+          globalInformation$modules$Catalogue$dataFrameContrainte[i+1,"contraintes_traduction"]<-myQueryChaineN_Traduction(mykeyB,paste0('[',mykeyA,' de ',lc,']'))
+        }
+        
+        # requete<-str_replace(requete,mykeyA,mykeyB)
+        # myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+        #cat("\nquery = ",myQuery)
+        
+        # mydata<-findQuery(globalInformation$globalDatabase,
+        #                   globalInformation$modules$Catalogue$dataFrameRequete[i,"collection"],
+        #                   myQuery
+        # )
+      }
+      #####################
+      
+      
+      
+
+      nbrElemRequete<-nrow(globalInformation$modules$Catalogue$listSaveDataFrame[[dfName]])
+      globalInformation$modules$Catalogue$dataFrameRequete[globalInformation$modules$Catalogue$dataFrameRequete["collection"]==lc,"nbrElemRequete"]<-nbrElemRequete
+      output[[ERROR_MGS_ActionSave_data_frame_requete_Les_Genes]]<-renderText({
+        paste("<font color=\"#36aa7a\"><b>", "Enregistrement effectuer !", "</b></font>")
+      })
+      #cat(dfName)
+      progress$inc(1/nbr)
+    })
+    
+   
+    
+    ################################   FIN LAPPLY  ##############################################
+    #############################################################################################
+  })#end lapply
+  # Convert the list to a tagList - this is necessary for the list of items
+  # to display properly.
+  do.call(tagList, uisRequetesSuite)
+  }#end if
+  
+})#end observerEvent
+
+
+
+
+
+

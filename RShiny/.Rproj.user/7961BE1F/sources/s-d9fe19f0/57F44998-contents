@@ -1,0 +1,6 @@
+[
+  {
+    "name":"Requetes_et_visualisation",
+    "menu":"menuItem('Requêtes et Analyses',icon = icon('dna'),menuItem('Catalogues',icon = icon('book'),tabName = 'Les_Genes'),menuItem('Couverture des modules',tabName = 'Couverture_des_modules',icon = icon('solar-panel'))),menuItem('Données des projets',icon = icon('server'),menuSubItem('Sélection de projets',tabName = 'Selection_de_projets',icon = icon('list-alt')),menuItem('Faire des requêtes',icon = icon('laptop-code'),menuSubItem('Les MGS',tabName = 'Les_MGS_projets',icon = icon('microscope')))))"
+  }
+]

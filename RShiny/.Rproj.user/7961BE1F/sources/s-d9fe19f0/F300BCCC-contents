@@ -1,0 +1,10 @@
+[
+  {
+    "name":"Gestion_de_l_application/Gestion_des_projets",
+    "ui":"tabItem_Gestion_des_projets",
+    "server":"serverGestion_des_projets(input, output, session,globalInformation)",
+    
+    
+    "fileToSource":["serverGestion_des_projets.R","uiGestion_des_projets.R"]
+  }
+]

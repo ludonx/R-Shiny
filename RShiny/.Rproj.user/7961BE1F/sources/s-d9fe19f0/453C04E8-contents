@@ -1,0 +1,512 @@
+a
+b
+c<-c()
+c<-append(c,b)
+c
+c<-append(c,a)
+c
+source('~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/PackageForFAM/KEGG.modules.annotations.R')
+x<-download_KEGG_modules_annotations()
+x
+class(x)
+head(x)
+source('~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/PackageForFAM/KEGG.modules.annotations.R')
+x<-download_KEGG_modules_annotations()
+head(x)
+source('~/GIT_LAB_test/iogoldg/RShiny/GenerateData/GenerateNewProject/GenerateNewProjectAdmin.R')
+db<-loadDataBase('iogold','def_module_definitions_KEGGdb_5_19')
+db$count()
+db$drop()
+db$insert(x)
+db$count()
+runApp('ShinyDashboard')
+db$count()
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+db$count()
+runApp('ShinyDashboard')
+# Load library for plotting
+library(pheatmap)
+library(plot_ly)
+#Load data
+load("/data/db/biobank/catalogue/hs_9.9/functional/compressed_hs_9.9_annot_all_addIPR.kosMetacardis.correctedMGSids.rda")
+load("/data/db/biobank/catalogue/hs_9.9/hs_9.9_3463_cleaned_CAG_sup50_freeze1.rda")
+#Put the path to "fam_1.0.tar.gz"
+path.to.fam.tar.gz = "ShinyDashboard/PackageForFAM/fam.rar"
+library(pheatmap)
+library(plotly)
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+runApp('ShinyDashboard')
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+runApp('ShinyDashboard')
+#Put the path to "fam_1.0.tar.gz"
+path.to.fam.tar.gz = "/data/db/biobank/catalogue/hs_9.9/functional/fam_1.0.tar.gz"
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+runApp('ShinyDashboard')
+.libPaths()
+shiny::runApp('ShinyDashboard')
+d<-Sys.time()
+x<-findAll('iogold','module_coverage_KEGGdb_5_19')
+de<-Sys.time()
+de-d
+plot_ly(x=colnames(x), y=rownames(x), z=x, type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)%>%
+layout(xaxis=list(showticklabels = FALSE), yaxis=list(showticklabels = FALSE))
+x[1:10,1:10]
+# Plot 1
+pheatmap(md.cov$coverage, cluster_rows = F, cluster_cols = F)
+# Plot 1
+pheatmap(x, cluster_rows = F, cluster_cols = F)
+plot_ly(x=colnames(x), y=rownames(x), z=x, type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)%>%
+layout(xaxis=list(showticklabels = FALSE), yaxis=list(showticklabels = FALSE))
+table(apply(x, 2, class)
+)
+plot_ly(
+x = c("giraffes", "orangutans", "monkeys"),
+y = c(20, 14, 23),
+name = "SF Zoo",
+type = "bar"
+)
+plot_ly(x=colnames(x), y=rownames(x), z=x, type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)
+range(x)
+lengths(apply(x, 2, function(x) which(is.na(x))))
+detach("package:plotly", unload=TRUE)
+library("plotly", lib.loc="~/Rlib")
+plot_ly(x=colnames(x), y=rownames(x), z=x, type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)%>%
+layout(xaxis=list(showticklabels = FALSE), yaxis=list(showticklabels = FALSE))
+View(x[1:20, 1:20])
+class(colnames(x))
+class(rownames(x))
+plot_ly(z = volcano, type = "heatmap")
+class(x)
+y<-x
+x<-as.matrix(x)
+class(x)
+plot_ly(x=colnames(x), y=rownames(x), z=x, type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)%>%
+layout(xaxis=list(showticklabels = FALSE), yaxis=list(showticklabels = FALSE))
+class(volcano)
+dim(volcano)
+dim(as.data.frame(volcano))
+plot_ly(z = as.data.frame(volcano), type = "heatmap")
+class(y)
+plot_ly(data = y,x=y, y=y, type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)%>%
+layout(xaxis=list(showticklabels = FALSE), yaxis=list(showticklabels = FALSE))
+plot_ly(data = y,x=~colnames(y), y=~rownames(y), type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)%>%
+layout(xaxis=list(showticklabels = FALSE), yaxis=list(showticklabels = FALSE))
+plot_ly(data = y,x=colnames(y), y=rownames(y), type="heatmap",
+colorbar=list(title="Coverage"),
+colorscale=list(c(0,"rgb(224, 224, 224)"),
+c(1, "rgb(255,0,0)"))
+)%>%
+layout(xaxis=list(showticklabels = FALSE), yaxis=list(showticklabels = FALSE))
+runApp('ShinyDashboard')
+runApp('~/STAGE_ICAN/testChargement/test')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+class(x)
+class(y)
+b
+b<-findLimit('iogold','def_module_definition_KEGGdb_5_19',2)
+b<-findLimit('iogold','def_module_definitions_KEGGdb_5_19',2)
+y[1:10,1:10]
+y[1:10,b]
+bn<-row.names(b)
+bn
+y[1:10,bn]
+y[,bn]
+ncol(y)
+runApp('ShinyDashboard')
+#Put the path to "fam_1.0.tar.gz"
+path.to.fam.tar.gz = "/data/db/biobank/catalogue/hs_9.9/functional/fam_1.0.tar.gz"
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+#Put the path to "fam_1.0.tar.gz"
+path.to.fam.tar.gz = "/data/db/biobank/catalogue/hs_9.9/functional/fam_1.0.tar.gz"
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+#Put the path to "fam_1.0.tar.gz"
+path.to.fam.tar.gz = "/data/db/biobank/catalogue/hs_9.9/functional/fam_1.0.tar.gz"
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+#Put the path to "fam_1.0.tar.gz"
+path.to.fam.tar.gz = "/data/db/biobank/catalogue/hs_9.9/functional/fam_1.0.tar.gz"
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+#Put the path to "fam_1.0.tar.gz"
+path.to.fam.tar.gz = "/data/db/biobank/catalogue/hs_9.9/functional/fam_1.0.tar.gz"
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+shiny::runApp('ShinyDashboard')
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+install.packages("rtk")
+install.packages(path.to.fam.tar.gz, repos = NULL, type="source")
+# Load library for plotting
+library(pheatmap)
+library(plotly)
+#Load data
+load("/data/db/biobank/catalogue/hs_9.9/functional/compressed_hs_9.9_annot_all_addIPR.kosMetacardis.correctedMGSids.rda")
+load("/data/db/biobank/catalogue/hs_9.9/hs_9.9_3463_cleaned_CAG_sup50_freeze1.rda")
+library(fam)
+if(!getOption("verbose")) chverb()
+#Pre-step
+hs9.9 = CatalogueBuilder(catalogue = hs_9.9_annot_all, mgs.annot = CAG, nCores = 6L)
+compute.time = system.time(
+{
+hs9.9$getFunctionalUnitsPrevalenceMgs()
+}
+)[[3]]
+cat("Functional unit prevalence per MGS:", compute.time/60, "minutes.\n")
+#Compute module coverage
+md.cov = hs9.9$moduleCoverage(only.kegg = F)
+# Note: you need md.cov$coverage
+3==2
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+runApp('testLogin')
+runApp('testLogin')
+source('testLogin/app.R')
+runApp(list(ui = ui, server = server))
+runApp('ShinyDashboard')
+runApp('ShinyDashboard')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+library(shiny)
+source('ShinyDashboard/app.R')
+use warnings()
+warnings()
+source('ShinyDashboard/app.R')
+source('ShinyDashboard/app.R')
+# on commence par récupérer les données du le fichier JSON qui contient les informations nécessaires au démarrage de l'application
+globalInformationJson<-read_json(path='globalInformation.json',simplifyVector = TRUE)
+globalInformationJson<-read_json(path='./globalInformation.json',simplifyVector = TRUE)
+source('ShinyDashboard/app.R')
+warnings()
+globalInformationJson<-read_json(path='~GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/globalInformation.json',simplifyVector = TRUE)
+globalInformationJson<-read_json(path='~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/globalInformation.json',simplifyVector = TRUE)
+source('ShinyDashboard/app.R')
+warnings()
+globalInformationJson<-read_json(path='globalInformation.json',simplifyVector = TRUE)
+setwd("~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/")
+globalInformationJson<-read_json(path='globalInformation.json',simplifyVector = TRUE)
+source('app.R')
+warnings()
+source('app.R')
+warnings()
+source('app.R')
+source('app.R')
+source('app.R')
+source('app.R')
+source('app.R')
+source('app.R')
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+globalInformation$user
+myUpdateQueryMongoSimple('iogold','users',myQueryUnique("Name","root"),myQuerySetChaine("profil","administrateur"))
+x<-findAll('iogold','users')
+x
+myUpdateQueryMongoSimple('iogold','users',myQueryUnique("Name","b"),myQuerySetChaine("profil","chercheur"))
+myUpdateQueryMongoSimple('iogold','users',myQueryUnique("Name","a"),myQuerySetChaine("profil","chercheur"))
+x<-findAll('iogold','users')
+x
+myUpdateQueryMongoSimple('iogold','users',myQueryUnique("Name","eb"),myQuerySetChaine("profil","administrateur"))
+colnames(x)
+source('~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/PackageForMongoDB/mesFonctionsNoSQL.R')
+source('~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/PackageForMongoDB/mongoDbSimpleQuery.R')
+myUpdateQueryMongoSimple('iogold','users','{}',myQueryRenameField("profil","Pro"))
+source('~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/PackageForMongoDB/mongoDbSimpleQuery.R')
+myUpdateQueryMongoSimple('iogold','users','{}',myQueryRenameField("profil","Pro"))
+x<-findAll('iogold','users')
+colnames(x)
+myUpdateQueryMongoSimple('iogold','users','{}',myQueryRenameField("Pro","profil"))
+colnames(x)
+runApp()
+runApp()
+runApp()
+mainDashboardHeader<-
+dashboardHeader(
+title = title#"INTERGROMICS"
+# dropdownMenu(type = "notifications",
+#              icon =icon("bell"),
+#              headerText ="Notification" ,
+#              badgeStatus ="warning",
+#              notificationItem(
+#                text = "5 new users today",
+#                icon("users")
+#              ),
+#              notificationItem(
+#                text = "12 items delivered",
+#                icon("truck"),
+#                status = "success"
+#              ),
+#              notificationItem(
+#                text = "Server load at 86%",
+#                icon = icon("exclamation-triangle"),
+#                status = "warning"
+#              )
+# )#end dropdownMenu
+)
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp(
+)
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+save.image("~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/030619.RData")
+runApp()
+findLimit('iogold','ko_module_definitions_KEGGdb_5_19',2)
+findLimit('iogold','def_ko_definition_KEGGdb_5_19',2)
+findLimit('iogold','def_ko_Module_associations_KEGGdb_5_19',2)
+findLimit('iogold','def_module_pathway_associations_KEGGdb_5_19',2)
+findLimit('iogold','def_ko_pathway_associations_KEGGdb_5_19',2)
+myUpdateQueryMongoSimple('iogold','def_ko_definition_KEGGdb_5_19','{}',myQueryRenameField("V1","koIDs"))
+myUpdateQueryMongoSimple('iogold','def_ko_definition_KEGGdb_5_19','{}',myQueryRenameField("V2","definition"))
+myUpdateQueryMongoSimple('iogold','def_ko_Module_associations_KEGGdb_5_19','{}',myQueryRenameField("V1","moduleIDs"))
+myUpdateQueryMongoSimple('iogold','def_ko_Module_associations_KEGGdb_5_19','{}',myQueryRenameField("V2","koIDs"))
+myUpdateQueryMongoSimple('iogold','def_module_pathway_associations_KEGGdb_5_19	','{}',myQueryRenameField("V1","mapIDs"))
+myUpdateQueryMongoSimple('iogold','def_module_pathway_associations_KEGGdb_5_19	','{}',myQueryRenameField("V2","moduleIDs"))
+myUpdateQueryMongoSimple('iogold','def_ko_pathway_associations_KEGGdb_5_19','{}',myQueryRenameField("V2","koIDs"))
+runApp()
+myUpdateQueryMongoSimple('iogold','def_module_pathway_associations_KEGGdb_5_19	','{}',myQueryRenameField("V1","mapIDs"))
+myUpdateQueryMongoSimple('iogold','def_module_pathway_associations_KEGGdb_5_19	','{}',myQueryRenameField("V2","moduleIDs"))
+runApp()
+myUpdateQueryMongoSimple('iogold','def_module_pathway_associations_KEGGdb_5_19','{}',myQueryRenameField("V1","mapIDs"))
+myUpdateQueryMongoSimple('iogold','def_module_pathway_associations_KEGGdb_5_19','{}',myQueryRenameField("V2","moduleIDs"))
+runApp()
+source('~/GIT_LAB_test/iogoldg/RShiny/GenerateData/GenerateNewProject/GenerateNewProjectAdmin.R')
+GenerateMyDataMultiAdmin('iogold','jointures','jointure.json','~/GIT_LAB_test/iogoldg/RShiny/MongoDB/')
+GenerateMyDataMultiAdmin('iogold','jointures','jointures.json','~/GIT_LAB_test/iogoldg/RShiny/MongoDB/')
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+shiny::runApp(display.mode="showcase")
+runApp(display.mode="showcase")
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp(display.mode="showcase")
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+x<-findAll('iogold','users')
+colnames(x)
+fluidPage(
+fluidRow(
+column(6,
+box(
+title = "Formulaire d'ajout", status = "primary", width = 12,
+textInput(inputId ="First_name" ,label ="test"  ),
+textInput(inputId ="First_name" ,label ="test"  ),
+textInput(inputId ="First_name" ,label ="test"  ),
+textInput(inputId ="First_name" ,label ="test"  ),
+)
+)
+),#end fluidRow
+fluidRow(
+column(2,""),
+column(2,
+actionButton(inputId = paste0("Actionfusion",uiconfProjet1),
+label = "Visualisation des plots",
+icon("chart-bar"),
+style="color: #fff; background-color: #b73263; border-color: #b7319c"
+)
+)#end column
+)#end fluidRow
+)#end fluidPage
+colnames(x)
+runApp()
+runApp()
+runApp()
+runApp()
+y<-findAll('iogold','projects')
+colnames(y)
+runApp()
+runApp()
+colnames(x)
+addNewUser(databaseName,collectionName,Name,First_name,Last_name,Password,email,profil,Projects="none"){
+queryInsert<-
+paste0('{"Name" : "',Name,'", "First_name" : "',First_name,'", "Last_name" : "',Last_name,'", "Password" : "',Password,'", "email" : "',email,'", "profil" : "',profil, '"}')
+db<-loadDataBase(databaseName,collectionName)
+db$insert(queryInsert)
+# Automatically disconnect when connection is removed
+rm(db)
+gc()
+}
+addNewUser(databaseName,collectionName,Name,First_name,Last_name,Password,email,profil,Projects="none"){
+queryInsert<-
+paste0('{"Name" : "',Name,'", "First_name" : "',First_name,'", "Last_name" : "',Last_name,'", "Password" : "',Password,'", "email" : "',email,'", "profil" : "',profil, '"}')
+db<-loadDataBase(databaseName,collectionName)
+db$insert(queryInsert)
+# Automatically disconnect when connection is removed
+rm(db)
+gc()
+}
+addNewUser('ioglod','users','ludo','ludovik','tekam',hashpw('ludo', gensalt(16)),"ludo@gmail.com",'administrateur')
+source('~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/PackageForMongoDB/mongoDbSimpleQuery.R')
+source('~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard/PackageForMongoDB/mongoDbSimpleQuery.R')
+addNewUser('ioglod',
+'users',
+'ludo',
+'ludovik',
+'tekam',
+hashpw('ludo', gensalt(16)),
+'ludo@gmail.com',
+'administrateur')
+addNewUser('iogold',
+'users',
+'ludo',
+'ludovik',
+'tekam',
+hashpw('ludo', gensalt(16)),
+'ludo@gmail.com',
+'administrateur')
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+colnames(x)
+runApp()
+runApp()
+runApp()
+runApp()
+source('~/GIT_LAB_test/iogoldg/RShiny/GenerateData/GenerateNewProject/GenerateNewProjectAdmin.R')
+GenerateMyDataMultiAdmin('iogold','def_pathway_definitions_KEGGdb_5_19','pathway_definitions.json','/data/projects/iogold/data/microbiome/0.json.tables.ICGgenesMGS.MongoDB/')
+shiny::runApp('ShinyDashboard')
+GenerateMyDataMultiAdmin('iogold','def_pathway_definitions_KEGGdb_5_19','pathway_definitions.json','/data/projects/iogold/data/microbiome/0.json.tables.ICGgenesMGS.MongoDB/')
+GenerateMyDataMultiAdmin('iogold','collections','collections3.json','~/GIT_LAB_test/iogoldg/RShiny/MongoDB/')
+shiny::runApp('ShinyDashboard')
+setwd("~/GIT_LAB_test/iogoldg/RShiny/CopyOfShinyDashboard")
+shiny::runApp('GIT_LAB_test/iogoldg/RShiny/ShinyDashboard')
+runApp('GIT_LAB_test/iogoldg/RShiny/ShinyDashboard')
+runApp('GIT_LAB_test/iogoldg/RShiny/ShinyDashboard')
+runApp('GIT_LAB_test/iogoldg/RShiny/ShinyDashboard')
+runApp('GIT_LAB_test/iogoldg/RShiny/ShinyDashboard')
+runApp('GIT_LAB_test/iogoldg/RShiny/ShinyDashboard')
+?bcrypt
+gc()
+# Shiny stuff
+library(shiny)
+library(shinyjs)
+library(shinyAce)
+library(shinycssloaders)
+library(shinydashboard)
+# data parsing
+library(readr)#read_file
+# database
+library(mongolite)
+library(jsonlite)
+library(DT)
+library(bcrypt) #passowrd hashing
+# vizualisation
+library(ggplot2)
+library(gridExtra)
+library(plotly)
+library(pheatmap)
+# data processing
+library(reshape)
+library(stringr) #use for s
+# (1) Get configuration information
+globalInformationJson <- read_json(path='./globalInformation.json',simplifyVector = TRUE)
+setwd("~/GIT_LAB_test/iogoldg/RShiny/ShinyDashboard")
+# (1) Get configuration information
+globalInformationJson <- read_json(path='./globalInformation.json',simplifyVector = TRUE)
+View(globalInformationJson)

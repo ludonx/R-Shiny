@@ -1,0 +1,238 @@
+
+serverConnexion<-
+  function(input, output, session,globalInformation){
+   
+   
+    observeEvent(input$ActionLogin,{
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = "Connexion en cours ...", value = 0)
+      nbrInc<-4
+      progress$inc(1/nbrInc)
+        
+      dataUser<-
+        findQuery(
+          globalInformation$globalDatabase,
+          globalInformation$usersCollections,
+          myQueryUnique("email",input$email)
+        )
+      progress$inc(1/nbrInc)
+      if(nrow(dataUser)>0){
+        #The username exists
+        #Get the username's password
+        hash <- toString(sapply(dataUser["Password"], as.character))
+        #Check if the password is correct
+        if(checkpw(input$pwd, hash) == TRUE) {
+          globalInformation$user$connected <<- TRUE
+          #updateTabItems(session,inputId = "mainMenu",selected ="Accueil" )
+          updateTabItems(session,inputId = "mainMenu",selected ="Les_Genes" )
+          
+          
+          dataUser$clientData_url_protocol<-session$clientData$url_protocol
+          dataUser$clientData_url_pathname<-session$clientData$url_pathname
+          dataUser$clientData_url_port<-session$clientData$url_port
+          dataUser$clientData_url_search<-session$clientData$url_search
+          
+          trouver<-F
+          if(dataUser[1,"connecter"]==1){
+            if(nrow(app$users$tracking)>0){
+              for(i in 1:nrow(app$users$tracking)){
+                if(!is.null(app$users$tracking[i,"email"])){
+                  if(app$users$tracking[i,"email"]==dataUser[1,"email"]){
+                    trouver<-T
+                  }
+                }
+                
+                
+              }#end for
+              if(trouver==F){
+                app$users$tracking <<- rbind(app$users$tracking,dataUser)
+              }
+            }else{
+              app$users$tracking <<- rbind(app$users$tracking,dataUser)
+            }
+          }else{
+            myUpdateQueryMongoSimple(
+              globalInformation$globalDatabase,
+              globalInformation$usersCollections,
+              myQueryUnique("email",input$email),
+              myQuerySetChaine("connecter",1)
+            )
+            
+            app$users$tracking <<- rbind(app$users$tracking,dataUser)
+          }
+          #if(dataUser[1,"connecter"]==0 ){
+            #dataUser$session<-session
+            #### user session information ######
+            
+            
+            
+            ## on ajoute l'utilisateur
+            # app$users$tracking <<- rbind(app$users$tracking,dataUser)
+            
+            
+           
+            progress$inc(1/nbrInc)
+          # }else{
+          #   progress$inc(1/3)
+          # }
+          
+          
+          globalInformation$user$id<-dataUser$Name
+          globalInformation$user$nom<-dataUser$First_name
+          globalInformation$user$prenom<-dataUser$Last_name
+          globalInformation$user$email<-dataUser$email
+          globalInformation$user$profil<-dataUser$profil
+          globalInformation$user$time<-Sys.time()
+          
+          globalInformation$user$path<-paste(globalInformation$workDirectory,globalInformation$user$email,'current_session',sep="/")
+          #globalInformation$user$admin<-dataUser$Admin_rights
+          
+          ################################ QUAND UN UTILISATEUR CE CONNECTE ########################################
+          ####################################################################################################
+          
+          
+          globalInformation$Console<-
+            paste0(globalInformation$Console,
+                   "\n>> [Nouvelle Connexion]",
+                   "\n   Nom : ",globalInformation$user$nom,
+                   "\n   Prénom : ",globalInformation$user$prenom,
+                   "\n   email : ",globalInformation$user$email,
+                   "\n   date :",globalInformation$user$time)
+          
+          
+          ####################################################################################################
+          ####################################################################################################
+          progress$inc(1/nbrInc)
+            
+        }
+      }else{
+        progress$inc(1/nbrInc)
+        progress$inc(1/nbrInc)
+        }
+      
+    })
+    
+    
+    ##########################################################################
+    ########## Affichage du menu en fonction du l'utilisateur connecté
+    
+    observe({
+      
+      #### l'utilisateur n'est pas connecté
+      #### on affiche le menu de connexion
+      if(globalInformation$user$connected == FALSE){
+        output$sidebarMenuOutput<-renderMenu({
+          shinyjs::addClass(selector = "body", class = "sidebar-collapse")
+          
+          sidebarMenu(
+            id="mainMenu",
+            
+            menuItem(text="Connexion",
+                     tabName = "Connexion",
+                     icon = icon("chalkboard-teacher"))
+            
+          )
+        })
+        ###############################################################################################################################
+        ###############################################################################################################################
+      }else if((globalInformation$user$connected == TRUE)&&(globalInformation$user$profil== "administrateur") ){
+
+        output$sidebarMenuOutput<-renderMenu({
+          dataFrameLesUtilisateurs<-
+            findAll(
+              globalInformation$globalDatabase,
+              globalInformation$usersCollections
+            )
+          globalInformation$dataFrameLesUtilisateurs<-dataFrameLesUtilisateurs
+          
+          shinyjs::removeClass(selector = "body", class = "sidebar-collapse")
+          
+          sidebarMenu(id="mainMenu",lapply(app$modules$menu, function(x){eval(parse(text = x))}))
+        })
+        ###############################################################################################################################
+        ###############################################################################################################################
+        
+      }else if((globalInformation$user$connected == TRUE)&&(globalInformation$user$profil== "chercheur") ){
+        output$sidebarMenuOutput<-renderMenu({
+          shinyjs::removeClass(selector = "body", class = "sidebar-collapse")
+          sidebarMenu(
+            id="mainMenu",
+            
+            #################################################################################
+            
+            menuItem("Requêtes et Analyse",icon = icon("dna"),
+                     menuItem("Catalogues",icon = icon("book"),tabName = "Les_Genes"
+                              # menuSubItem("Sélectionnez un catalogue",tabName = "Selection_un_catalogue",icon = icon("list-alt")),
+                              # menuItem("Faire des requêtes",icon = icon("laptop-code"),
+                              #          menuSubItem("Les Gènes",tabName = "Les_Genes",icon = icon("table"))
+                              #          #menuSubItem("Les MGS",tabName = "Les_MGS",icon = icon("table"))
+                              # )
+                     ),
+                     
+                     menuItem("FAM",icon = icon("calculator"),
+                              menuSubItem("Couverture des modules",tabName = "Couverture_des_modules",icon = icon("solar-panel"))
+                              
+                     ),
+                     
+                     menuItem("Données des projets",icon = icon("server"),
+                              menuSubItem("Sélection de projets",tabName = "Selection_de_projets",icon = icon("list-alt")),
+                              menuItem("Faire des requêtes",icon = icon("laptop-code"),
+                                       menuSubItem("Les MGS",tabName = "Les_MGS_projets",icon = icon("microscope")),
+                                       menuSubItem("Les Gènes",tabName = "Les_Genes_projets",icon = icon("microscope"))
+                              )
+                     )
+            ),
+            menuItem("Tutoriels chercheur",icon = icon("book-reader"),
+                     menuSubItem("Comparer des projets",tabName = "Tuto_Comparer_des_projets"),
+                     menuSubItem("Configurer des plots de MGS",tabName = "Tuto_config_plots_mgs_projet"),
+                     menuSubItem("Requête sur les gènes",tabName = "Tuto_Requête_sur_les_genes")
+                     
+            ),
+            
+            menuItem(text=paste0("Réglage ( ",globalInformation$user$prenom," )"),tabName = "Reglage",icon = icon("user-cog"))
+            
+            
+            #################################################################################
+          )# end sidebarMenu
+        })
+        ###############################################################################################################################
+        ###############################################################################################################################
+        
+      }else{
+        output$sidebarMenuOutput<-renderMenu({
+          shinyjs::removeClass(selector = "body", class = "sidebar-collapse")
+          
+          sidebarMenu(
+            id="mainMenu",
+            
+            menuItem(text="Connexion",
+                     tabName = "Connexion",
+                     icon = icon("chalkboard-teacher")),
+            
+            menuItem(text="Profil non defini",tabName = "ERROR_PROFIL",icon = icon("user-cog"))
+            
+            
+          )
+        })# output$sidebarMenuOutput<-renderMenu
+      }
+      
+    })
+   
+  ################## CHARGEMENT D'UNE SESSION #######################
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Connexion"),
+        "serverConnexion_charger_feedback.R"),
+      local = TRUE)$value
+    
+    ################## INITIALISATION DU TEMPS DE SAUVEGARDE DES MODULES #######################
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Connexion"),
+        "serverConnexion_Set_module_time.R"),
+      local = TRUE)$value
+    
+  }

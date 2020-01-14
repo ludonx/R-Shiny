@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1567693274811.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1239109447",
+    "id" : "56A209F9",
+    "lastKnownWriteTime" : 1567693759,
+    "last_content_update" : 1567693759388,
+    "path" : "~/GIT_LAB_test/iogoldg/RShiny/modules/Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_MGS_projets/serverLes_MGS_projets.R",
+    "project_path" : "modules/Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_MGS_projets/serverLes_MGS_projets.R",
+    "properties" : {
+        "cursorPosition" : "205,10",
+        "scrollLine" : "182"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

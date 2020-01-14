@@ -1,0 +1,137 @@
+#dataTable_user
+serverAccueil<-
+  function(input, output, session,globalInformation){
+    ################ Global information #########################################
+    #############################################################################
+    ### data frame
+    output$dataTable_globalInformation<- DT::renderDataTable({
+      listCol<-input$Checkbox_globalInformation
+      if(length(listCol)>1)
+      DT::datatable(app$config[,listCol],filter = 'top',selection = 'single')#
+    })
+    
+    #### checkbox
+    output$uiCheckbox_globalInformation<-renderUI({
+      box(
+        title = "Les variables", status = "primary", solidHeader = TRUE,
+        collapsible = TRUE,collapsed = F, width = 12,
+        checkboxGroupInput("Checkbox_globalInformation", 
+                           " ",
+                           names(app$config),
+                           selected =colnames(app$config)[1:4]
+        )
+      )
+      
+    })
+    
+    ####################### users connecter ####################################
+    ############################################################################
+    ### data frame
+    output$dataTable_Accueil_users_connecter<- DT::renderDataTable({
+      listCol<-input$Checkbox_Accueil_users_connecter
+      if(length(listCol)>1)
+        DT::datatable(app$users$tracking[,listCol],filter = 'top',selection = 'single')#
+    })
+    
+    #### checkbox
+    output$uiCheckbox_Accueil_users_connecter<-renderUI({
+      box(
+        title = "Les variables", status = "primary", solidHeader = TRUE,
+        collapsible = TRUE,collapsed = F, width = 12,
+        checkboxGroupInput("Checkbox_Accueil_users_connecter", 
+                           " ",
+                           names(app$users$tracking),
+                           selected =colnames(app$users$tracking)[1:3]
+        )
+      )
+      
+    })
+    
+    ####################### info box #############################################
+    ##############################################################################
+    ### users
+    output$infoUsers <- renderValueBox({
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("nombre d'utilisateur"), value = 0)
+      progress$inc(1/2)
+      nbr<-countAll(globalInformation$globalDatabase,globalInformation$usersCollections)
+      progress$inc(1/2)
+      valueBox(
+        value=nbr,
+        subtitle = "Utilisateurs",
+        icon = icon("user"),
+        color = "purple"
+      )
+    })
+    ### users connected
+    output$infoUsersConnected <- renderValueBox({
+      valueBox(
+        value=nrow(app$users$tracking),
+        subtitle = "Utilisateurs Connecté actif",
+        icon = icon("user-clock"),
+        color = "olive"
+      )
+    })
+    ### users connected non actif
+    output$infoUsersConnectedAll<- renderValueBox({
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("nombre d'utilisateur Connecté"), value = 0)
+      progress$inc(1/2)
+        
+      nbr<-countQuery(globalInformation$globalDatabase,globalInformation$usersCollections,myQueryUnique("connecter",1))
+      progress$inc(1/2)
+      
+      valueBox(
+        value=nbr,
+        subtitle = "nombre Utilisateurs Connecté ",
+        icon = icon("bed"),
+        color = "maroon"
+      )
+    })
+    
+    ### projects
+    output$infoProjects <- renderValueBox({
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("nombre de projet"), value = 0)
+      progress$inc(1/2)
+      
+      nbr<-countAll(globalInformation$globalDatabase,globalInformation$projectsCollections)
+      progress$inc(1/2)
+      
+      valueBox(
+        value=nbr,
+        subtitle = "Projets",
+        icon = icon("digital-tachograph"),
+        color = "yellow"
+      )
+    })
+    
+    ### catalogue
+    output$infoCatalogs <- renderValueBox({
+      progress <- shiny::Progress$new()
+      # Make sure it closes when we exit this reactive, even if there's an error
+      on.exit(progress$close())
+      progress$set(message = paste0("nombre de catalogue"), value = 0)
+      progress$inc(1/2)
+      
+      nbr<-countAll(globalInformation$globalDatabase,globalInformation$catalogCollections)
+      progress$inc(1/2)
+      
+      valueBox(
+        value=nbr,
+        subtitle = "Catalogues",
+        icon = icon("list-alt"),
+        color = "blue"
+      )
+    })
+    
+    
+    
+    
+  }

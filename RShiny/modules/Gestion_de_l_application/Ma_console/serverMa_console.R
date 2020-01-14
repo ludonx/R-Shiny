@@ -1,0 +1,57 @@
+serverMa_console<-
+  function(input, output, session,globalInformation){
+    
+    # ################### variables.R 
+    # source(
+    #   file.path(
+    #     paste0(app$config$pathToModule,"Ma_console"),
+    #     "serverMa_console_Variables.R"),
+    #   local = TRUE)$value
+    
+    ### FlexBox.R  
+    source(
+      file.path(
+        paste0(app$config$pathToModule,"Gestion_de_l_application/Ma_console"),
+        "serverMa_console_FlexBox.R"),
+      local = TRUE)$value
+    
+    # ### save.R  
+    # source(
+    #   file.path(
+    #     paste0(app$config$pathToModule,"Ma_console"),
+    #     "serverMa_console_Save.R"),
+    #   local = TRUE)$value
+    # 
+    # ### restore.R  
+    # source(
+    #   file.path(
+    #     paste0(app$config$pathToModule,"Ma_console"),
+    #     "serverMa_console_Restore.R"),
+    #   local = TRUE)$value
+    ######################## Mes Messages ################################
+    output$uiMessage_variable_ma_console<-renderText({
+      uiMessage_variable_ma_console()
+    })
+    
+    #################### resutat ma console ##############################
+    ### text
+    observe({
+      globalInformation$modules$Ma_console$text
+      updateTextAreaInput(session ,inputId ="text_result_Ma_console" ,value = globalInformation$modules$Ma_console$text )
+      
+    })
+    
+    
+    ### dataFrame
+    output$data_frame_result_Ma_console<-DT::renderDataTable({
+      
+        DT::datatable(globalInformation$modules$Ma_console$dataFrame,filter = 'top',selection = 'none') 
+      
+        
+    })
+    
+    ### plot
+    output$plot_result_Ma_console<-renderPlot({
+      globalInformation$modules$Ma_console$plot
+    })
+  }

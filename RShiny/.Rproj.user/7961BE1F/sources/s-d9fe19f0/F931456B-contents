@@ -1,0 +1,15 @@
+
+
+globalInformation$modules$Catalogue$defSelected <- 
+append(
+globalInformation$modules$Catalogue$defSelected,
+globalInformation$modules$Catalogue$defSelected[1]
+)
+globalInformation$modules$Catalogue$databaseDefSelected <-
+append(
+globalInformation$modules$Catalogue$databaseDefSelected,
+globalInformation$modules$Catalogue$databaseDefSelected[1]
+)
+printy(length(globalInformation$modules$Catalogue$defSelected))
+
+

@@ -1,0 +1,32 @@
+[
+  {
+    "module":"Reglage",
+    "side":"ui",
+    "type":"pickerInput",
+    "Fr":"langues" ,
+    "En":"languages",
+    "_row":"Reglage_ui_pickerInput_1"
+  },
+  
+  {
+    "module":"Reglage",
+    "side":"ui",
+    "type":"actionButton",
+    "Fr":"",
+    "En":"",
+    "_row":"Reglage_ui_actionButton_1"
+  },
+  
+    
+  {
+    "module":"Reglage",
+    "side":"ui",
+    "type":"pickerInput",
+    "Fr":"",
+    "En":null,
+    "_row":"x"
+  }
+    
+  
+  
+]

@@ -1,0 +1,819 @@
+
+
+options(mongodb = list(
+  "host" = app$config$host,
+  "username" = app$config$username,
+  "password" = URLencode(app$config$pwd, reserved = TRUE)
+))
+
+loadDataBase <- function(databaseName, collectionName){
+  dataDase <- mongo(collection = collectionName,
+                    url = sprintf(
+                      "mongodb://%s:%s@%s/%s",
+                      options()$mongodb$username,
+                      options()$mongodb$password,
+                      options()$mongodb$host,
+                      databaseName)
+  )
+  dataDase
+}
+
+# recuperation de toutes les données d'une collection
+findAll <- function(databaseName, collectionName){
+  db <- loadDataBase(databaseName,collectionName)
+  data<-db$find()
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  return(data)
+}
+
+findLimit <- function(databaseName, collectionName,limit){
+  db<-loadDataBase(databaseName, collectionName)
+  data<-db$find(limit=limit)
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  return(data)
+}
+
+###########################################################
+findQuery <- function(databaseName,collectionName,myQueryJson){
+  db<-loadDataBase(databaseName,collectionName)
+  data<-db$find(query=myQueryJson)
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  return(data)
+  
+}
+
+###########################################################
+findQueryLimit <- function(databaseName,collectionName,myQueryJson,limit){
+  db <- loadDataBase(databaseName,collectionName)
+  data <- db$find(query=myQueryJson,limit=limit)
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  return(data)
+  
+}
+
+###########################################################
+countAll <- function(databaseName,collectionName){
+  db<-loadDataBase(databaseName,collectionName)
+  data<-db$count()
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  return(data)
+}
+
+###########################################################
+countQuery <- function(databaseName,collectionName,myQueryJson){
+  db<-loadDataBase(databaseName,collectionName)
+  data<-db$count(query=myQueryJson)
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  return(data)
+}
+
+###########################################################
+aggregateQuery <- function(databaseName,collectionName,myQueryJson){
+  db<-loadDataBase(databaseName,collectionName)
+  data<-db$aggregate(myQueryJson)
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  return(data)
+}
+
+###############################################################
+listCollectionByName <- function(databaseName,filter,equal=TRUE){
+    colonne<-"name"
+    db<-loadDataBase(databaseName,'')
+    listCollection<-''
+    if(equal==FALSE){
+      listCollection<-db$run(paste0('{"listCollections":1, "filter":',myQueryChaineNe(colonne,filter),',"nameOnly": true}'))
+    }else{
+      listCollection<-db$run(paste0('{"listCollections":1, "filter":',myQueryChaine(colonne,filter),',"nameOnly": true}'))
+    }
+    data<-listCollection$cursor$firstBatch$name
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+    return(data)
+    
+  }
+###############################################################
+
+getGeneAbundance <- function(globalDatabase,projectDatabase,collectionICGgenes,collectionCAG,MGS_name,CollectionGeneAbundance){
+    # méthode 1
+    # on récupère les ids via la collection CAG
+    result<-
+      findQuery(globalDatabase,
+                collectionCAG,
+                myQueryJson =myQueryUnique("MGS",MGS_name) )
+    # car il y a une seule valeur 
+    MGS_name<-result[1,1]
+    MGS_GeneIDs<-result[1,2]
+    vectorGeneIDs<-unlist(MGS_GeneIDs, use.names=FALSE)
+    
+    #on récupère les GeneNames correspondant au GeneIDs
+    Gene<-findQuery(globalDatabase,collectionICGgenes,
+                    myQueryUniqueIN_integer('GeneID',vectorGeneIDs))
+    MGS_GeneName<-Gene["GeneName"]
+    # on la converti en un vecteur ( ce data frame à une seul colonnes)
+    vectorGeneNames<-c()
+    for(i in 1:nrow(MGS_GeneName)){
+      vectorGeneNames<-append(vectorGeneNames,MGS_GeneName[i,1])
+    } 
+    
+    # on recuperer les abondances des gènes sur la collection GeneAbundance
+    GeneAbundance<-
+      findQuery(projectDatabase,
+                CollectionGeneAbundance,
+                myQueryUniqueIN('_row',vectorGeneNames)
+      )
+    
+    return(GeneAbundance)
+  }
+
+
+############################################################
+AddIndex<-
+  function(databaseName,collectionName,colonne){
+    db<-loadDataBase(databaseName,collectionName)
+    db$index(add = paste0('{"',colonne,'" : 1}'))
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+  }
+
+############################################################
+getProjectUser<-
+  function(databaseName,collectionUser,collectionProject,userEmail,catalogselected="cat_hs9.9_v1",keyUser="email",keyProject="name",keycatalog="catalog"){
+    # on récupére la liste des utilisateurs d'un projet
+    infoUser<-findQuery(databaseName,collectionUser,myQueryUnique(keyUser,userEmail))
+    projectUser<-infoUser$Projects[1]
+    vectorProjectUser<-unlist(projectUser, use.names=FALSE)
+    # on récupére le data frame des projets de cette utilisateur
+    query<-
+      myQueryConstraintN(
+        list(
+          myConstraintUnique(keycatalog,catalogselected),
+          myConstraintUniqueIN(keyProject,vectorProjectUser)
+          )
+        )
+    infoProject<-findQuery(databaseName,collectionProject,query)
+    
+    return(infoProject)
+  }
+
+############################################################
+addProject<-
+  function(databaseName,
+           collectionProject,
+           NameProject,
+           collectionGeneAbundance,
+           collectionMGSabundance,
+           collectionSampleMetadata,
+           NameDataBaseProject){
+    
+    if(nrow(findQuery(databaseName,collectionProject,myQueryUnique("Name",NameProject)))>0){
+      return(FALSE)
+    }else{
+      db<-loadDataBase(databaseName,collectionProject)
+      
+      data<-paste0('{ "Name": "',NameProject
+                   ,'", "GeneAbundance": "',collectionGeneAbundance
+                   ,'", "MGSabundance": "',collectionMGSabundance
+                   ,'", "SampleMetadata": "',collectionSampleMetadata
+                   ,'", "dataBase": "',NameDataBaseProject,'" }')
+      # data<-paste0('{ "Name": "',NameProject)
+      # data<-paste0(data,'", "GeneAbundance": "',collectionGeneAbundance)
+      # data<-paste0(data,'", "MGSabundance": "',collectionMGSabundance)
+      # data<-paste0(data,'", "SampleMetadata": "',collectionSampleMetadata)
+      # data<-paste0(data,'", "dataBase": "',NameDataBaseProject,'" }')
+      
+      # on insert les données : MGS et GenesIDs
+      db$insert(data)
+      # Automatically disconnect when connection is removed
+      # rm(db)
+      # gc()
+      return(TRUE)
+    }
+    
+   
+  }
+
+############################################################
+addProjectToUser<-
+  function(databaseName,collectionProject,collectionUser,userEmail,newProject){
+    infoUser<-findQuery(databaseName,collectionUser,myQueryUnique("email",userEmail))
+    projectUser<-infoUser$Projects[1]
+    vectorProjectUser<-unlist(projectUser, use.names=FALSE)
+    
+    if((newProject %in% vectorProjectUser)==FALSE){
+      db<-loadDataBase(databaseName,collectionUser)
+      query<-paste0('{ "email": "',userEmail,'" }')
+      updateVal<-paste0('{ "$push": { "Projects": "',newProject,'" } }')
+      db$update(query,updateVal)
+      # Automatically disconnect when connection is removed
+      # rm(db)
+      # gc()
+      return(TRUE)
+    }else{
+      return(FALSE)
+    }
+    
+  }
+############################################################
+myUpdateQueryMongoSimple<-
+  function(databaseName,collectionName,query,updateValQuery){
+    db<-loadDataBase(databaseName,collectionName)
+    db$update(query,updateValQuery,multiple = TRUE)
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+
+  }
+############################################################
+myUpdateQueryMongo<-
+  function(databaseName,collectionName,colonne,oldValue,newValue){
+    db<-loadDataBase(databaseName,collectionName)
+    query<-myQueryUnique(colonne,oldValue)
+    updateVal<-paste0('{"$set":{"',colonne,'": "',newValue,'"}}')
+    db$update(query,updateVal,multiple = TRUE)
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+
+  }
+
+myDeleteQueryField<-
+  function(databaseName,collectionName,colonne){
+    db<-loadDataBase(databaseName,collectionName)
+    query<-paste0('{}')
+    updateVal<-paste0('{"$unset":{"',colonne,'": ""}}')
+    db$update(query,updateVal,multiple = TRUE)
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+
+  }
+
+############################################################
+getVectorOfCollectionByField<-
+  function(databaseName,collectionName,colonne){
+    
+    myField<-paste0('{"',colonne,'" : true}')
+    db<-loadDataBase(databaseName,collectionName)
+    myData<-db$find(fields=myField)
+    myDataField<-myData[colonne]
+    
+    myVector<-vector(mode="character", length=nrow(myData))
+    for(i in 1:length(myVector))
+    {
+      myVector[i]<-myDataField[i,1]
+    }
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+
+    return(myVector)
+  }
+
+############################################################
+changeCollectionName<-
+  function(databaseName,oldName,newName){
+    db<-loadDataBase(databaseName,oldName)
+    db$rename(name = newName)
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+  }
+############################################################
+addNewUser<-
+  function(databaseName,collectionName,Name,First_name,Last_name,Password,email,profil,Projects="none",access_level=10){
+  queryInsert<-
+    paste0('{"Name" : "',Name,
+           '", "First_name" : "',First_name,
+           '", "Last_name" : "',Last_name,
+           '", "Password" : "',Password,
+           '", "email" : "',email,
+           '", "access_level" : "',access_level,
+           '", "profil" : "',profil,
+           '", "date_ajout" : "',as.character(Sys.Date()),
+           '", "connecter" : "0" }')
+  
+  db<-loadDataBase(databaseName,collectionName)
+  db$insert(queryInsert)
+  # Automatically disconnect when connection is removed
+  # rm(db)
+  # gc()
+  myUpdateQueryMongoSimple(databaseName,
+                           collectionName,
+                           myQueryUnique('email',email),
+                           myQueryPushChaine('Projects',Projects)
+  )
+  }
+#######################################################################
+deleteUser<-
+  function(databaseName,collectionUserDelete,collectionUser,Name,First_name,Last_name,Password,email,profil,date_ajout,Projects="none"){
+    db<-loadDataBase(databaseName,collectionUser)
+    db$remove(paste0('{"email" : "',email,'"}'), just_one = TRUE)
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+    
+    
+    queryInsert<-
+      paste0('{"Name" : "',Name,
+             '", "First_name" : "',First_name,
+             '", "Last_name" : "',Last_name,
+             '", "Password" : "',Password,
+             '", "email" : "',email,
+             '", "profil" : "',profil,
+             '", "date_ajout" : "',date_ajout,
+             '", "date_suppression" : "',as.character(Sys.Date()),
+             '"}')
+    
+    db<-loadDataBase(databaseName,collectionUserDelete)
+    db$insert(queryInsert)
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+  }
+############################################################
+ModifierUser<-
+  function(databaseName,collectionName,Name,First_name,Last_name,Password,email,profil){
+    queryInsert<-
+      paste0('{"Name" : "',Name,
+             '", "First_name" : "',First_name,
+             '", "Last_name" : "',Last_name,
+             '", "Password" : "',Password,
+             '", "email" : "',email,
+             '", "profil" : "',profil,
+             '", "date_ajout" : "',as.character(Sys.Date()),
+             
+             '"}')
+    
+    
+    db<-loadDataBase(databaseName,collectionName)
+    db$update('{"email":"',email,'"}', '{"$set":',queryInsert,'}')
+    # Automatically disconnect when connection is removed
+    # rm(db)
+    # gc()
+  }
+################################################################
+confirmeUser<-
+  function(databaseName,collectionName,Name,First_name,Last_name,Password,Password_Confirm,email,profil,Projects="none"){
+    if(Password==Password_Confirm){
+      userExiste<-findQuery(databaseName,collectionName,myQueryUnique("Name",Name))
+      if(nrow(userExiste)>0){
+        return(paste0("ERREUR : Cette utilisateur existe déjà"))
+      }else{
+        userExiste<-findQuery(databaseName,collectionName,myQueryUnique("email",email))
+        if(nrow(userExiste)>0){
+          return(paste0("ERREUR : Cette email est dèjà utilisé"))
+        }else{
+          return(TRUE)
+          
+        }#end else
+      }#end else
+      
+    }else{
+      return(paste0("ERREUR : Mot de passe incorrecte..."))
+    }#end else
+    
+  }
+
+
+######################################################################
+
+RenameCagField<-
+  function(databaseName,collectionName,suffix="A"){
+    d<-Sys.time()
+    cag<-findLimit(databaseName,collectionName,2)
+    cat(Sys.time()-d)
+    names<-colnames(cag)
+    d<-Sys.time()
+    for(i in 1:length(names) ){
+      #suffix<-i
+      myUpdateQueryMongoSimple(databaseName,
+                               collectionName,
+                               '{}',
+                               myQueryRenameField(names[i],paste0(names[i],"_",suffix)))
+      
+    }
+    cat(Sys.time()-d)
+  }
+
+###########################################################################
+
+concatCollection<-
+  function(listeDatabaseName,listeCollection){
+    allCollection<-data.frame()
+    nd<-length(listeDatabaseName)
+    nc<-length(listeCollection)
+    if(nc>0 && nd>0){
+      if(nc==nd){
+        allCollection<-findAll(listeDatabaseName[1],listeCollection[1])
+        #cat(listeCollection[1])
+      }else{
+        return(F)
+      }
+      
+    }else{
+      return(F)
+    }
+    
+    for(i in 1:nc){
+      if(i>1){
+        collectionName<-listeCollection[i]
+        databaseName<-listeDatabaseName[i]
+        
+        data<-findLimit(databaseName,collectionName,2)
+        communColonne<-intersect(colnames(allCollection),colnames(data))
+        communligne<-intersect(row.names(allCollection),row.names(data))
+        if(length(communColonne)==0 && length(communligne)==length(row.names(data))){
+          data<-findAll(databaseName,collectionName)
+          #cat(collectionName)
+          allCollection<-merge(allCollection,data,by.x=0,by.y=0)
+          
+          # on supprime la colonne Row.names
+          row.names(allCollection) <- allCollection$Row.names
+          allCollection$Row.names<-NULL
+          #cat("merge")
+        }else{
+          # deux abondance de MGS ne peuvent pas avoir des colonnes avec des nom identique
+          # mais elles doivent avoire le même nombre de lignes
+          return(data.frame())
+          
+        }
+      }#end if
+      
+    }#end for
+    return(allCollection)
+    
+  }
+###################################################################################################
+getCollectionKeyMongo<-
+  function(globalDataBase,collectionJointure,collectionA,collectionB,catalog){
+    myQueryKey<-
+      myQueryConstraintN(
+        list(
+          
+          myConstraintUnique("nameCollectionA",collectionA),
+          myConstraintUnique("nameCollectionB",collectionB)
+        )
+      )
+    #cat(globalDataBase,'--',collectionJointure,'<--')
+    mydata<-findQuery(globalDataBase,collectionJointure,myQueryKey)
+    key<-F
+    if(!is.null(mydata[1,"key"])){
+      key<-mydata[1,"key"]
+    }
+    return(key)
+  }
+###################################################################################################
+getDataFrameCouvertureMGSbyK0<-
+  function(data_frame_CAG,listeKoIds,key_gene_ko="KOs_embl_metacardis"){
+    databaseName<-'iogold'
+    
+    ### les keys
+    key<-"KOs_embl_metacardis"
+    
+    
+    mycag<-data_frame_CAG
+    ## set names of mycag$GeneIDs with mycag$MGS
+    ## in this case, every GeneID of a data_frame_CAG row will have the name of the MGS of the row
+    names(mycag$GeneIDs)<-mycag$MGS
+    
+    ### le df initial
+    mydata<-mycag
+    ## set row.name with CAGXXX value
+    row.names(mydata)<-mycag$MGS
+    ## set col.name with K00XXX value
+    #for(i in 1:length(listeKoIds)){mydata[,listeKoIds[i]]<-0}
+    
+    ## suppression de la colonnes GeneIDs
+    mydata$GeneIDs<-NULL
+    
+    max<-length(listeKoIds)
+    ### construction du df
+    db<-loadDataBase('iogold','def_genes_cat_hs9.9_v1')
+    for(i in 1:length(listeKoIds)){
+      # pour chaque ko, on récupére la liste des genes
+      cat(i,"/",max," :: ",listeKoIds[i])
+      d<-Sys.time()
+      # K0<-findQuery(databaseName,
+      #               "def_genes_cat_hs9.9_v1",
+      #               myQueryUnique(key,listeKoIds[i]))
+      # 
+      K0<-db$find(query =myQueryUnique(key,listeKoIds[i]),fields = '{"KOs_embl_metacardis" : true}' ) # ~5fois plus rapide en precisant le fields
+      
+      ## on compte le nombre de gene par CAG 
+      ## (c'est la longueur de l'intercection entre la liste des geneid du ko et la liste des geneid du cag  )
+      listGeneIDs<-K0$GeneID
+      tabMGSK0<-sapply(mycag$GeneIDs, function(x) length(intersect(x, listGeneIDs)))
+      
+      ## on stoque le resultat dans la colonne ko qui correspond
+      ## la longuer de tabMGSK0 == nbr ligne mydata
+      mydata[,listeKoIds[i]]<-tabMGSK0
+      
+      cat(" -- ",Sys.time()-d,"\n")
+      
+    }#end for
+    rm(db)
+    gc()
+    ## suppression de la colonnes MGS
+    mydata$MGS<-NULL
+    return(mydata)
+  }
+
+
+###################################################################################################
+###################################################################################################
+typeColumnCollections<-
+  function(){
+    #### on crée un collection qui contiendra les type des differentes colonnes des définitions 
+    ### cele permetre de mieux gére les interface des requêtes
+    globalDatabase<-'iogold'
+    #dataFrameDefinition<-findQuery(globalDatabase,'collections',myQueryChaine("type","def"))
+    dataFrameObservation<-findQuery(globalDatabase,'collections',myQueryUniqueIN("name","obs_mgs_cat_hs9.9_v1_Microbaria"))
+    dbc<-""
+    db<-loadDataBase(globalDatabase,"typeColumn2")
+    db$drop()
+    
+    for(i in 1:nrow(dataFrameObservation)){
+      collectionName<-dataFrameObservation[i,"name"]
+      
+      mydataCollection<-findLimit(dataFrameObservation[i,"database"],collectionName,20)
+      listeColumn<-colnames(mydataCollection)
+      for(j in 1:length(listeColumn)){
+        columnName<-listeColumn[j]
+        typeColumn<-class(mydataCollection[,columnName])
+        min<-max<-0
+        if(typeColumn %in% c("integer","numeric")){
+          
+          #dbc<-loadDataBase(dataFrameObservation[i,"database"],collectionName)
+          #mm<-dbc$aggregate(paste0('[{ "$group" : { "_id": null, "max": { "$max" : "',paste0("$",columnName),'" }, "min": { "$min" : "',paste0("$",columnName),'" }}}]'))
+          
+          min<-0#mm$min
+          max<-1#mm$max
+          
+        }
+        myqueryInsert<-
+          paste0('{"collection":"',collectionName,
+                 '","column":"',columnName,
+                 '","type":"',typeColumn,
+                 '","min":',min,
+                 ',"max":',max,
+                 ' }')
+        db$insert(myqueryInsert)
+        cat("\n>> Insert ok : --",j,"--",myqueryInsert)
+      }
+      
+    }
+    rm(dbc)
+    gc()
+    rm(db)
+    gc()
+  }
+###################################################################################################
+######### Verifier si il existe une liason entre les collection dans un ordre précis
+checkCollectionOrder<-
+  function(databaseName,collectionJointure,listeCollection,catalog){
+    n<-length(listeCollection)
+    if(n<=1){
+      return(TRUE)
+    }else{
+      for(i in 1:(n-1)){
+        if(getCollectionKeyMongo(databaseName,collectionJointure,listeCollection[i],listeCollection[i+1],catalog)==F ){
+          return(F)
+        }
+      }
+      return(TRUE)
+    }
+    
+  }
+
+
+##################################################################################################
+## ajouter une collection au forma json dans mongodb
+insertNewCollectionJson<-
+  function(jsonFile,databaseName,collectionName){
+    lc<-listCollectionByName(databaseName,'CAG',F)
+    if(collectionName %in% lc){
+      return(F)
+    }else{
+      db<-loadDataBase(databaseName,collectionName)
+      
+      #db$insert(fromJSON(cheminCollection)) 
+      db$insert(jsonlite::fromJSON(jsonFile))
+      rm(db)
+      gc()
+      return(T)
+    }
+  }
+
+##############
+executerQueriesDataFrame<-
+  function(globalDatabase,jointuresCollections,listeQueries,dataFrameRequete){#,nameSaveDataFrame
+    
+    listSaveDataFrame<-list()
+    mydata<-data.frame()
+    if(nrow(dataFrameRequete)>0){
+      for(i in 1:nrow(dataFrameRequete) ){
+        #progress$inc(1/nbr,detail=paste0("Requête sur la collection : ", dataFrameRequete[i,"collection"]))
+        
+        dataFrameRequete[i,"requete"]<-listeQueries[i]
+        #cat(dataFrameRequete[i,"requete"])
+        if(i==1){
+          
+          # #if(dataFrameRequete[i,"requete"]=='{}'){
+          #   #cat("1 :",myQueryStringInit)
+          #   dataFrameRequete[i,"requete"]<-listeQueries[i]
+          # #}
+          
+          mydata<-findQuery(dataFrameRequete[i,"database"],
+                            dataFrameRequete[i,"collection"],
+                            dataFrameRequete[i,"requete"]
+          )
+        }else{
+          
+          requete1<-dataFrameRequete[i,"requete"]
+          # on supprimer les {}
+          requete<-str_sub(requete1, 2, str_length(requete1)-1)
+          #cat("\nma requete =",requete)
+          mykeyA<-getCollectionKeyMongo(globalDatabase,
+                                        jointuresCollections,
+                                        dataFrameRequete[i-1,"collection"],
+                                        dataFrameRequete[i,"collection"],
+                                        "cat_hs9.9_v1")
+          mykeyB<-getCollectionKeyMongo(globalDatabase,
+                                        jointuresCollections,
+                                        dataFrameRequete[i,"collection"],
+                                        dataFrameRequete[i-1,"collection"],
+                                        "cat_hs9.9_v1")
+          myNewConstrainte<-F
+          #cat("\n",mykeyA,"--",colnames(mydata))
+          df<-data.frame()
+          
+          if(nrow(mydata)>0){
+            if(mykeyA=='_row')df<-mydata[mykeyA,]
+            else df<-mydata[,mykeyA]
+            
+            if(class(mydata[1,mykeyA])=="character"){
+              myNewConstrainte<-myConstraintUniqueIN(mykeyB,df)
+            }else if(class(mydata[1,mykeyA])=="list"){
+              #myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+            }else if(class(mydata[1,mykeyA]) %in% c("numeric","integer")){
+              myNewConstrainte<-myConstraintUniqueIN_integer(mykeyB,df)
+            }
+            
+          }#end nrow(mydata)>0
+          #### si la requete est vide
+          #cat('req1= ',requete1,'--')
+          if(requete1 %in% c('{}','{ }','{  }')){
+            if(myNewConstrainte==F){
+              myQuery<-paste0("{}")
+            }else{
+              myQuery<-paste0("{",myNewConstrainte,"}")
+            }
+            
+            myQuery<-paste0("{",myNewConstrainte,"}")
+            #cat("\nquery = ",myQuery)
+          }else{
+            requete<-str_replace(requete,mykeyA,mykeyB)
+            if(myNewConstrainte==F){
+              myQuery<-paste0("{",requete,"}")
+            }else{
+              myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+            }
+            
+            myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+            #cat("\nquery = ",myQuery)
+          }
+          
+          #cat("\n db :",dataFrameRequete[i,"database"])
+          mydata<-findQuery(dataFrameRequete[i,"database"],
+                            dataFrameRequete[i,"collection"],
+                            myQuery
+          )
+          dataFrameRequete[i,"requete"]<-myQuery
+        }#end else{
+        
+        dataFrameRequete[i,"nbrElemRequete"]<-nrow(mydata)
+        
+        dfName<-dataFrameRequete[i,"collection"]
+        listSaveDataFrame[[dfName]]<-mydata
+
+      }#end for
+      
+      # for quicksave
+      #listSaveDataFrame[[nameSaveDataFrame]]<-mydata
+
+    }else{
+      #cat("\nmyCollectionDataValider est vide ")
+    }
+    
+    return(list(listSaveDataFrame=listSaveDataFrame,dataFrameRequete=dataFrameRequete))
+  }#end executerDataFrameRequete
+
+##############
+executerQueriesDataFrameProjet<-
+  function(globalDatabase,jointuresCollections,dataFrameInit,collectiondataFrameInit,dataFrameRequete,nameSaveDataFrame){
+    
+    listSaveDataFrame<-list()
+    mydata<-data.frame()
+    newRequete<-data.frame()
+    newRequete[1,"collection"]<-collectiondataFrameInit
+    newRequete[1,"requete"]<-'{}'
+    newRequete[1,"nbrElemRequete"]<-nrow(dataFrameInit)
+    newRequete[1,"database"]<-"empthy_database"
+    
+    dataFrameRequete<-rbind(newRequete,dataFrameRequete)
+    if(nrow(dataFrameRequete)>0){
+      for(i in 1:nrow(dataFrameRequete) ){
+
+        if(i==1){
+          
+          mydata<-dataFrameInit
+        }else{
+          requete1<-dataFrameRequete[i,"requete"]
+          requete<-str_sub(requete1, 2, str_length(requete1)-1)
+          #cat("\nma requete =",requete)
+          mykeyA<-getCollectionKeyMongo(globalDatabase,
+                                        jointuresCollections,
+                                        dataFrameRequete[i-1,"collection"],
+                                        dataFrameRequete[i,"collection"],
+                                        "cat_hs9.9_v1")
+          mykeyB<-getCollectionKeyMongo(globalDatabase,
+                                        jointuresCollections,
+                                        dataFrameRequete[i,"collection"],
+                                        dataFrameRequete[i-1,"collection"],
+                                        "cat_hs9.9_v1")
+          myNewConstrainte<-F
+          df<-data.frame()
+          if(mykeyA=='_row')df<-mydata[mykeyA,]
+          else df<-mydata[,mykeyA]
+          if(class(mydata[1,mykeyA])=="character"){
+            myNewConstrainte<-myConstraintUniqueIN(mykeyB,df)
+          }else if(class(mydata[1,mykeyA])=="list"){
+            #myNewConstrainte<-myConstraintUniqueIN(mykeyB,mydata[,mykeyA])
+          }else if(class(mydata[1,mykeyA]) %in% c("numeric","integer")){
+            myNewConstrainte<-myConstraintUniqueIN_integer(mykeyB,df)
+          }
+          
+          #### si la requete est vide
+          if(requete1=='{}'){
+            if(myNewConstrainte==F){
+              myQuery<-paste0("{}")
+            }else{
+              myQuery<-paste0("{",myNewConstrainte,"}")
+            }
+            
+            myQuery<-paste0("{",myNewConstrainte,"}")
+            #cat("\nquery = ",myQuery)
+          }else{
+            requete<-str_replace(requete,mykeyA,mykeyB)
+            if(myNewConstrainte==F){
+              myQuery<-paste0("{",requete,"}")
+            }else{
+              myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+            }
+            
+            myQuery<-paste0('{',requete,",",myNewConstrainte,"}")
+            #cat("\nquery = ",myQuery)
+          }
+          
+          #cat(myQuery)
+          mydata<-findQuery(dataFrameRequete[i,"database"],
+                            dataFrameRequete[i,"collection"],
+                            myQuery
+          )
+          dataFrameRequete[i,"requete"]<-myQuery
+        }
+        
+        dataFrameRequete[i,"nbrElemRequete"]<-nrow(mydata)
+        
+        dfName<-dataFrameRequete[i,"collection"]
+        listSaveDataFrame[[dfName]]<-mydata
+        
+      }#end for
+      
+      listSaveDataFrame[[nameSaveDataFrame]]<-mydata
+      #cat("\nmyCollectionDataValider = ",nrow(mydata))
+      
+    }else{
+      #cat("\nmyCollectionDataValider est vide ")
+    }
+    
+    return(list(listSaveDataFrame=listSaveDataFrame,dataFrameRequete=dataFrameRequete))
+  }#end executerDataFrameRequete
+
+

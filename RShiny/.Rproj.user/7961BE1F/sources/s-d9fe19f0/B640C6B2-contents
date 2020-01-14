@@ -1,0 +1,43 @@
+[
+  {
+    "database":"iogold_microbaria",
+    "project":"Microbaria_test",
+    
+    "globaldatabase" : "iogold",
+    "catalog" :"",
+    "version":"v1",
+    
+    "obs_collection":"obs_samplemetadata_",
+    "common_json_file_name":"MicrobariaSampleMetadata",
+    "path":"/data/db/iogold/microbiome/2.json.tables.Microbaria/"
+    
+  },
+  {
+    "database":"iogold_microbaria",
+    "project":"Microbaria_test",
+    
+    "globaldatabase" : "iogold",
+    "catalog" : "cat_hs9.9_",
+    "version":"v1",
+    
+    "obs_collection":"obs_mgs_",
+    "common_json_file_name":"MicrobariaMGSabundance",
+    "path":"/data/db/iogold/microbiome/2.json.tables.Microbaria/"
+    
+  },
+  {
+    "database":"iogold_microbaria",
+    "project":"Microbaria_test",
+    
+    "globaldatabase" : "iogold",
+    "catalog" : "cat_hs9.9_",
+    "version":"v1",
+    
+    "obs_collection":"obs_genes_",
+    "common_json_file_name":"MicrobariaGeneAbundance_1000001:2000000",
+    "path":"/data/db/iogold/microbiome/2.json.tables.Microbaria/GeneAbundance_With_row/"
+    
+  }
+  
+  
+]

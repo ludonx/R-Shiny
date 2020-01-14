@@ -1,0 +1,14 @@
+[
+  {
+    "folderName":"Gestion_de_l_application/Visualisation_des_collections",
+    "ui":"tabItem_Visualisation_des_collections",
+    "server":"serverVisualisation_des_collections(input, output, session,globalInformation)",
+    
+    "menu":null,
+    "fileToSource":["serverVisualisation_des_collections.R","uiVisualisation_des_collections.R"],
+    "priority":10,
+    "linkModule":null,
+    "rang":93,
+    "menu_en":null
+  }
+]

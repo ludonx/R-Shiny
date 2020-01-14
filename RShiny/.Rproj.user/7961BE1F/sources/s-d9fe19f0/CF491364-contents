@@ -1,0 +1,8 @@
+req_mb_ab_biotin <- readRDS("/home/ltekam/GIT_LAB_test/iogoldg/RShiny/user_data/root@g.c/current_session/Catalogue/cat_hs9.9_v1/req_abundance_genes_biotin.rds")
+req_mb_clin <- readRDS("/home/ltekam/GIT_LAB_test/iogoldg/RShiny/user_data/root@g.c/current_session/Catalogue/cat_hs9.9_v1/req_sample_time_T0_or_M12.rds")
+
+
+ab <- req_mb_ab_biotin$listSaveDataFrame$obs_genes_cat_hs9.9_v1_Microbaria
+clin <- req_mb_clin$listSaveDataFrame$obs_samplemetadata_v1_Microbaria
+
+match(rownames(clin), colnames(ab))

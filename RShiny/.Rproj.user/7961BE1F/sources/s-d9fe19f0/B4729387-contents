@@ -1,0 +1,14 @@
+[
+  {
+    "folderName":"Requetes_et_visualisation/Les_Genes",
+    "ui":"tabItem_Les_Genes",
+    "server":"serverLes_Genes(input, output, session,globalInformation)",
+    
+    "menu":null,
+    "fileToSource":["serverLes_Genes.R","uiLes_Genes.R"],
+    "priority":0,
+    "linkModule":null,
+    "rang":24,
+    "menu_en":null
+  }
+]

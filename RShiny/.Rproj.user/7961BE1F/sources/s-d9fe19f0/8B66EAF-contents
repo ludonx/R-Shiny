@@ -1,0 +1,13 @@
+[
+  {
+    "folderName":"Reglage",
+    "ui":"tabItem_Reglage",
+    "server":"serverReglage(input, output, session,globalInformation)",
+    "menu":"menuItem(text='Réglage',tabName = 'Reglage',icon = icon('user-cog'))",
+    "fileToSource":["serverReglage.R","uiReglage.R"],
+    "priority":0,
+    "linkModule":null,
+    "rang":100,
+    "menu_en":"menuItem(text='Logout',tabName = 'Reglage',icon = icon('user-cog'))"
+  }
+]

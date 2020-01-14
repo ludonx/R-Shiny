@@ -1,0 +1,20 @@
+[
+  {
+    "folderName":"Gestion_de_l_application/Gestion_des_utilisateurs",
+    "ui":"tabItem_Gestion_des_utilisateurs",
+    "server":"serverGestion_des_utilisateurs(input, output, session,globalInformation)",
+    
+    "menu":null,
+    "fileToSource":[
+      "serverLes_utilisateurs.R",
+      "serverAffection_de_projets.R",
+      "serverAjouter_un_utilisateur.R",
+      "serverGestion_des_utilisateurs.R",
+      "uiGestion_des_utilisateurs.R"],
+      
+    "priority":10,
+    "linkModule":null,
+    "rang":92,
+    "menu_en":null
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "folderName":"Requetes_et_visualisation/Donnees_des_projets/Faire_des_requetes/Les_MGS_projets",
+    "ui":"tabItem_Les_MGS_projets",
+    "server":"serverLes_MGS_projets(input, output, session,globalInformation)",
+    "menu":null,
+    
+    "fileToSource":["serverLes_MGS_projets.R","uiLes_MGS_projets.R"],
+    "priority":0,
+    "linkModule":null,
+    "rang":22,
+    "menu_en":null
+  }
+]
