@@ -1,1 +1,0 @@
-[{"Name" : "Microbaria", "NiveauAccess" : 32, "SampleMetadata" :"MicrobariaSampleMetadata", "MGSabundance" : "MicrobariaMGSabundance", "GeneAbundance" : "MicrobariaGeneAbundance"},{"Name" : "BactoTerre", "NiveauAccess" : 4,  "SampleMetadata" : "BactoTerreSampleMetadata", "MGSabundance" : "BactoTerreMGSabundance", "GeneAbundance" : "BactoTerreGeneAbundance"}]
